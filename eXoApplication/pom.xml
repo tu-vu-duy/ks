@@ -14,6 +14,5 @@
     <module>faq</module>
     <module>forum</module>
     <module>poll</module>
-    <module>wiki</module>
   </modules>
 </project>

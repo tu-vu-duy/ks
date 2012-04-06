@@ -117,8 +117,8 @@
         <values-param>
           <name>locations</name>
           <description>location where Forum export format file is stored</description>
-          <!-- value>war:/data/forum/data-full-forum.zip</value -->
-          <!-- value>war:/data/forum/forumCategory.xml</value -->
+          <!-- value>war:/data/data-full-forum.zip</value -->
+          <!-- value>war:/data/forumCategory.xml</value -->
         </values-param>
       </init-params>
     </component-plugin> 

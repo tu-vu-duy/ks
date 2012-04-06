@@ -441,13 +441,14 @@ UIAnswersPortlet.prototype.initBreadcumbScroll = function () {
 
 UIAnswersPortlet.prototype.loadScroll = function (scrollname, container, callback) {
   var uiNav = eXo.faq.UIAnswersPortlet;
-  if (container) {
+  var controlButtonContainer = eXo.core.DOMUtil.findFirstDescendantByClass(container, "td", "ControlButtonContainer");
+  if (container && controlButtonContainer) {
     uiNav.scrollMgr[scrollname] = eXo.portal.UIPortalControl.newScrollManager(scrollname);
     uiNav.scrollMgr[scrollname].initFunction = callback;
-    uiNav.scrollMgr[scrollname].mainContainer = eXo.core.DOMUtil.findFirstDescendantByClass(container, "td", "ControlButtonContainer");
+    uiNav.scrollMgr[scrollname].mainContainer = controlButtonContainer;
     uiNav.scrollMgr[scrollname].loadItems("ControlButton");
     if (uiNav.scrollMgr[scrollname].elements.length <= 0) return;
-    uiNav.scrollMgr[scrollname].arrowsContainer = eXo.core.DOMUtil.findFirstDescendantByClass(uiNav.scrollMgr[scrollname].mainContainer, "div", "ScrollButtons");
+    uiNav.scrollMgr[scrollname].arrowsContainer = eXo.core.DOMUtil.findFirstDescendantByClass(controlButtonContainer, "div", "ScrollButtons");
     var button = eXo.core.DOMUtil.findDescendantsByTagName(uiNav.scrollMgr[scrollname].arrowsContainer, "div");
 
     if (button.length >= 2) {

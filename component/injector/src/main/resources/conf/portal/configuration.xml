@@ -27,13 +27,6 @@
       <type>org.exoplatform.ks.bench.AnswerDataInjector</type>
       <description>inject data for Answer</description>
     </component-plugin>
-    
-    <component-plugin>
-      <name>WikiDataInjector</name>
-      <set-method>addInjector</set-method>
-      <type>org.exoplatform.ks.bench.WikiDataInjector</type>
-      <description>inject data for Wiki</description>
-    </component-plugin>    
   </external-component-plugins>
 </configuration>
   
