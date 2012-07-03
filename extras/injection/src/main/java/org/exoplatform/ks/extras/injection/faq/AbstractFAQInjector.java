@@ -19,7 +19,7 @@ import org.exoplatform.faq.service.Question;
 import org.exoplatform.faq.service.Utils;
 import org.exoplatform.faq.service.impl.JCRDataStorage;
 import org.exoplatform.ks.extras.injection.utils.LoremIpsum4J;
-import org.exoplatform.ks.extras.injection.utils.NameGenerator;
+import org.exoplatform.ks.extras.injection.utils.ExoNameGenerator;
 import org.exoplatform.ks.common.CommonUtils;
 import org.exoplatform.ks.common.jcr.KSDataLocation;
 import org.exoplatform.ks.common.jcr.PropertyReader;
@@ -112,7 +112,7 @@ abstract public class AbstractFAQInjector extends DataInjector {
   protected final Random random;
 
   /** . */
-  protected NameGenerator nameGenerator;
+  protected ExoNameGenerator exoNameGenerator;
 
   /** . */
   protected LoremIpsum4J lorem;
@@ -128,7 +128,7 @@ abstract public class AbstractFAQInjector extends DataInjector {
 
     //
     this.userHandler = organizationService.getUserHandler();
-    this.nameGenerator = new NameGenerator();
+    this.exoNameGenerator = new ExoNameGenerator();
     this.random = new Random();
     this.lorem = new LoremIpsum4J();
     

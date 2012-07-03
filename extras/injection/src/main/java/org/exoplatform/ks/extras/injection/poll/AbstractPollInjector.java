@@ -8,7 +8,7 @@ import javax.jcr.NodeIterator;
 
 import org.exoplatform.container.PortalContainer;
 import org.exoplatform.ks.extras.injection.utils.LoremIpsum4J;
-import org.exoplatform.ks.extras.injection.utils.NameGenerator;
+import org.exoplatform.ks.extras.injection.utils.ExoNameGenerator;
 import org.exoplatform.forum.service.ForumService;
 import org.exoplatform.ks.common.jcr.KSDataLocation;
 import org.exoplatform.ks.common.jcr.PropertyReader;
@@ -62,7 +62,7 @@ public abstract class AbstractPollInjector extends DataInjector {
 
   protected Random                     random                      = new Random();
 
-  protected NameGenerator              nameGenerator               = new NameGenerator();
+  protected ExoNameGenerator exoNameGenerator = new ExoNameGenerator();
 
   protected LoremIpsum4J               lorem                       = new LoremIpsum4J();
 
