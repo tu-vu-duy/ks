@@ -183,4 +183,28 @@ public class Utils {
     }
     return queryString.toString();
   }
+  
+  public static String getQuryListOfUser(String property, List<String> listOfUser) {
+    StringBuilder queryBuilder = new StringBuilder();
+    for (String expr : listOfUser) {
+      
+      if(FAQServiceUtils.isGroupExpression(expr)) {
+        
+      }
+    }
+    return "";
+  }
+
+
+
+
+
+
+
+
+
+
+
+
+
 }

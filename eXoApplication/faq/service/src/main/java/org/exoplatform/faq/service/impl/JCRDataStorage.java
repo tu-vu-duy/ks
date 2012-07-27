@@ -1921,18 +1921,28 @@ public class JCRDataStorage implements DataStorage, FAQNodeTypes {
       }
 
       StringBuffer queryString = new StringBuffer(JCR_ROOT).append(parentCategory.getPath());
+      String strQuery = "", order = " order by @exo:index" ;
       if (faqSetting.isAdmin())
-        queryString.append("/element(*,exo:faqCategory) [@exo:isView='true'] order by @exo:index ascending");
+        queryString.append("/element(*,exo:faqCategory) [@exo:isView='true']");
       else {
         queryString.append("/element(*,exo:faqCategory)[@exo:isView='true' and ( not(@exo:userPrivate) or @exo:userPrivate=''");
         for (String id : limitedUsers) {
-          queryString.append(" or @exo:userPrivate = '").append(id).append("' ");
-          queryString.append(" or @exo:moderators = '").append(id).append("' ");
+          strQuery += (" or @exo:userPrivate = '") + (id) + ("' ");
+          strQuery += (" or @exo:moderators = '") + (id) + ("' ");
+          if(FAQServiceUtils.isGroupExpression(id)) {
+            strQuery += (" or @exo:userPrivate = '\\*:") + (id) + ("' ");
+            strQuery += (" or @exo:moderators = '\\*:") + (id) + ("' ");
+          }
         }
-        queryString.append(" )] order by @exo:index");
+        if(CommonUtils.isEmpty(strQuery)) {
+          queryString.append(")]");
+        } else {
+          strQuery += ")]";
+        }
       }
       QueryManager qm = parentCategory.getSession().getWorkspace().getQueryManager();
-      String qString = queryString.toString();
+      String qString = queryString.toString() + strQuery + order;
+      ///jcr:root/exo:applications/faqApp/categories/element(*,exo:faqCategory)[@exo:isView='true' and ( not(@exo:userPrivate) or @exo:userPrivate='' or @exo:userPrivate = 'xxx'  or @exo:moderators = 'xxx'  or @exo:userPrivate = '*:/abc/xyz'  or @exo:moderators = '*:/abc/xyz' )] order by @exo:index
       Query query = qm.createQuery(qString, Query.XPATH);
       QueryResult result = query.execute();
       NodeIterator iter = result.getNodes();
