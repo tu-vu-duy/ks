@@ -6678,9 +6678,9 @@ public class JCRDataStorage implements DataStorage, ForumNodeTypes {
   }
 
   public void updateForumAccess(String userId, String forumId){
-    SessionProvider sysSession = CommonUtils.createSystemProvider();
+    sessionManager.openSession();
     try {
-      Node profile = getUserProfileHome(sysSession).getNode(userId);
+      Node profile = getUserProfileHome().getNode(userId);
       List<String> values = new ArrayList<String>();
       if (profile.hasProperty(EXO_READ_FORUM)) {
         values = Utils.valuesToList(profile.getProperty(EXO_READ_FORUM).getValues());
@@ -6705,6 +6705,8 @@ public class JCRDataStorage implements DataStorage, ForumNodeTypes {
 
     } catch (Exception e) {
       log.error(String.format("Failed to update user %s acess for forum %s", userId, forumId), e);
+    } finally {
+      sessionManager.closeSession();
     }
   }
 
