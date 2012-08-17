@@ -6321,9 +6321,9 @@ public class JCRDataStorage implements DataStorage, ForumNodeTypes {
   }
 
   public void evaluateActiveUsers(String strQuery){
-    SessionProvider sProvider = CommonUtils.createSystemProvider();
+    sessionManager.openSession();
     try {
-      String path = getUserProfileHome(sProvider).getPath();
+      String path = getUserProfileHome().getPath();
       StringBuilder stringBuilder = new StringBuilder();
       if (strQuery == null || strQuery.length() == 0) {
         Calendar calendar = GregorianCalendar.getInstance();
@@ -6332,22 +6332,18 @@ public class JCRDataStorage implements DataStorage, ForumNodeTypes {
       } else {
         stringBuilder.append(JCR_ROOT).append(path).append(strQuery);
       }
-      QueryManager qm = getForumHomeNode(sProvider).getSession().getWorkspace().getQueryManager();
+      QueryManager qm = sessionManager.getCurrentSession().getWorkspace().getQueryManager();
       Query query = qm.createQuery(stringBuilder.toString(), Query.XPATH);
       QueryResult result = query.execute();
       NodeIterator iter = result.getNodes();
 
-      Node statisticHome = getStatisticHome(sProvider);
-      if (statisticHome.hasNode(Locations.FORUM_STATISTIC)) {
-        statisticHome.getNode(Locations.FORUM_STATISTIC).setProperty(EXO_ACTIVE_USERS, iter.getSize());
-        statisticHome.save();
-      } else {
-        ForumStatistic forumStatistic = new ForumStatistic();
-        forumStatistic.setActiveUsers(iter.getSize());
-        saveForumStatistic(forumStatistic);
-      }
+      Node statisticNode = getNodeAt(dataLocator.getForumStatisticsLocation());
+      statisticNode.setProperty(EXO_ACTIVE_USERS, iter.getSize());
+      statisticNode.save();
     } catch (Exception e) {
       log.error("Failed to evaluate active users", e);
+    } finally {
+      sessionManager.closeSession();
     }
   }
 
