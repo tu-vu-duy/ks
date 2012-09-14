@@ -38,7 +38,7 @@ import org.exoplatform.webui.form.input.UICheckBoxInput;
  * 30-10-2008 - 10:35:05  
  */
 @ComponentConfig()
-public class UIForumKeepStickPageIterator extends BaseForumForm {
+public abstract class UIForumKeepStickPageIterator extends BaseForumForm {
 
   public int                         pageSelect      = 1;
 
@@ -133,21 +133,7 @@ public class UIForumKeepStickPageIterator extends BaseForumForm {
     return temp;
   }
 
-  public List<Integer> getInfoPage() throws Exception {
-    List<Integer> temp = new ArrayList<Integer>();
-    try {
-      temp.add(postListAccess.getPageSize());
-      temp.add(postListAccess.getCurrentPage());
-      temp.add(postListAccess.getSize());
-      temp.add(postListAccess.getTotalPages());
-    } catch (Exception e) {
-      temp.add(1);
-      temp.add(1);
-      temp.add(1);
-      temp.add(1);
-    }
-    return temp;
-  }
+  public abstract List<Integer> getInfoPage() throws Exception;
 
   public void setPageSelect(int page) {
     this.pageSelect = page;

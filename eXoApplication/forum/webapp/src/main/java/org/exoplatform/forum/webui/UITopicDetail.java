@@ -619,6 +619,21 @@ public class UITopicDetail extends UIForumKeepStickPageIterator {
     return this.isModeratePost;
   }
 
+  public List<Integer> getInfoPage() throws Exception {
+    List<Integer> temp = new ArrayList<Integer>();
+    try {
+      temp.add(postListAccess.getPageSize());
+      temp.add(postListAccess.getCurrentPage());
+      temp.add(postListAccess.getSize());
+      temp.add(postListAccess.getTotalPages());
+    } catch (Exception e) {
+      temp.add(1);
+      temp.add(1);
+      temp.add(1);
+      temp.add(1);
+    }
+    return temp;
+  }
   
   public List<Post> getPostPageList() throws Exception {
     Post[] posts = null;

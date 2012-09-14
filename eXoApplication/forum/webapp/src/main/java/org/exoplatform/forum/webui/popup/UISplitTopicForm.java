@@ -118,6 +118,8 @@ public class UISplitTopicForm extends UIForumKeepStickPageIterator implements UI
   public void setTopic(Topic topic) {
     this.topic = topic;
   }
+  
+  
 
   static public class SaveActionListener extends EventListener<UISplitTopicForm> {
     public void execute(Event<UISplitTopicForm> event) throws Exception {
@@ -198,5 +200,11 @@ public class UISplitTopicForm extends UIForumKeepStickPageIterator implements UI
       UIForumPortlet forumPortlet = uiForm.getAncestorOfType(UIForumPortlet.class);
       forumPortlet.cancelAction();
     }
+  }
+
+  @Override
+  public List<Integer> getInfoPage() throws Exception {
+    
+    return null;
   }
 }
