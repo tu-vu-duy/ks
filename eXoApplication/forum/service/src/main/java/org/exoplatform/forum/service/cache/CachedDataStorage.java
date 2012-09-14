@@ -63,6 +63,7 @@ import org.exoplatform.forum.service.cache.model.selector.CategoryIdSelector;
 import org.exoplatform.forum.service.cache.model.selector.ForumPathSelector;
 import org.exoplatform.forum.service.cache.model.selector.ScopeCacheSelector;
 import org.exoplatform.forum.service.impl.JCRDataStorage;
+import org.exoplatform.forum.service.impl.model.PostFilter;
 import org.exoplatform.ks.common.conf.RoleRulesPlugin;
 import org.exoplatform.ks.common.jcr.KSDataLocation;
 import org.exoplatform.management.annotations.Managed;
@@ -676,6 +677,8 @@ public class CachedDataStorage implements DataStorage, Startable {
     return storage.getListPostsByIP(ip, strOrderBy);
   }
 
+  
+  
   public void savePost(String categoryId, String forumId, String topicId, Post post, boolean isNew, MessageBuilder messageBuilder) throws Exception {
     storage.savePost(categoryId, forumId, topicId, post, isNew, messageBuilder);
     clearForumCache(categoryId, forumId, false);
@@ -1240,5 +1243,15 @@ public class CachedDataStorage implements DataStorage, Startable {
 
   public InputStream createUserRss(String userId, String link) throws Exception {
     return storage.createUserRss(userId, link);
+  }
+
+  @Override
+  public List<Post> getPosts(PostFilter filter, int offset, int limit) throws Exception {
+    return storage.getPosts(filter, offset, limit);
+  }
+
+  @Override
+  public int getPostsCount(PostFilter filter) throws Exception {
+    return storage.getPostsCount(filter);
   }
 }

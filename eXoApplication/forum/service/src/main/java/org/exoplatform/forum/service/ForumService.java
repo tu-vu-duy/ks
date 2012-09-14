@@ -24,7 +24,9 @@ import java.util.List;
 
 import javax.jcr.NodeIterator;
 
+import org.exoplatform.commons.utils.ListAccess;
 import org.exoplatform.container.component.ComponentPlugin;
+import org.exoplatform.forum.service.impl.model.PostFilter;
 import org.exoplatform.services.organization.User;
 
 /**
@@ -363,6 +365,7 @@ public interface ForumService extends ForumServiceLegacy {
    */
   void mergeTopic(String srcTopicPath, String destTopicPath, String mailContent, String link) throws Exception;
 
+  
   /**
    * Gets the posts.
    * 
@@ -377,6 +380,14 @@ public interface ForumService extends ForumServiceLegacy {
    * @throws Exception the exception
    */
   JCRPageList getPosts(String categoryId, String forumId, String topicId, String isApproved, String isHidden, String strQuery, String userLogin) throws Exception;
+  
+  /**
+   * Gets Posts and return ListAccess
+   * @param filter
+   * @return
+   * @throws Exception
+   */
+  ListAccess<Post> getPosts(PostFilter filter) throws Exception;
 
   /**
    * Gets posts of topic.

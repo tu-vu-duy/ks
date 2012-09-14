@@ -25,7 +25,9 @@ import java.util.Map;
 
 import javax.jcr.NodeIterator;
 
+import org.exoplatform.commons.utils.ListAccess;
 import org.exoplatform.container.component.ComponentPlugin;
+import org.exoplatform.forum.service.impl.model.PostFilter;
 import org.exoplatform.ks.common.conf.RoleRulesPlugin;
 import org.exoplatform.ks.common.jcr.KSDataLocation;
 import org.exoplatform.management.annotations.Managed;
@@ -153,6 +155,10 @@ public interface DataStorage {
   long getLastReadIndex(String path, String isApproved, String isHidden, String userLogin) throws Exception;
 
   JCRPageList getPosts(String categoryId, String forumId, String topicId, String isApproved, String isHidden, String strQuery, String userLogin) throws Exception;
+  
+  List<Post> getPosts(PostFilter filter, int offset, int limit) throws Exception;
+  
+  int getPostsCount(PostFilter filter) throws Exception;
 
   long getAvailablePost(String categoryId, String forumId, String topicId, String isApproved, String isHidden, String userLogin) throws Exception;
 

@@ -24,6 +24,7 @@ import java.util.Map;
 import org.exoplatform.forum.ForumUtils;
 import org.exoplatform.forum.service.JCRPageList;
 import org.exoplatform.forum.service.Utils;
+import org.exoplatform.forum.service.impl.model.PostListAccess;
 import org.exoplatform.webui.config.annotation.ComponentConfig;
 import org.exoplatform.webui.core.UIComponent;
 import org.exoplatform.webui.event.Event;
@@ -45,6 +46,8 @@ public class UIForumKeepStickPageIterator extends BaseForumForm {
 
   @SuppressWarnings("unchecked")
   public JCRPageList                 pageList;
+  
+  public PostListAccess              postListAccess = null;
 
   public int                         totalCheked     = 0;
 
@@ -95,7 +98,13 @@ public class UIForumKeepStickPageIterator extends BaseForumForm {
   }
 
   public List<String> getTotalpage() throws Exception {
-    int max_Page = pageList.getAvailablePage();
+    int max_Page = -1;    
+    if (postListAccess != null) {
+      max_Page = postListAccess.getTotalPages();
+    } else {
+      max_Page = pageList.getAvailablePage();
+    }
+    
     if (this.pageSelect > max_Page)
       this.pageSelect = max_Page;
     int page = this.pageSelect;
@@ -127,10 +136,10 @@ public class UIForumKeepStickPageIterator extends BaseForumForm {
   public List<Integer> getInfoPage() throws Exception {
     List<Integer> temp = new ArrayList<Integer>();
     try {
-      temp.add(pageList.getPageSize());
-      temp.add(pageList.getCurrentPage());
-      temp.add(pageList.getAvailable());
-      temp.add(maxPage);
+      temp.add(postListAccess.getPageSize());
+      temp.add(postListAccess.getCurrentPage());
+      temp.add(postListAccess.getSize());
+      temp.add(postListAccess.getTotalPages());
     } catch (Exception e) {
       temp.add(1);
       temp.add(1);

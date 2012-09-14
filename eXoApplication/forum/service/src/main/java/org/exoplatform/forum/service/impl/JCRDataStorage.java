@@ -33,9 +33,9 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Queue;
 import java.util.Set;
-import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
@@ -88,6 +88,8 @@ import org.exoplatform.forum.service.Post;
 import org.exoplatform.forum.service.PruneSetting;
 import org.exoplatform.forum.service.SendMessageInfo;
 import org.exoplatform.forum.service.SortSettings;
+import org.exoplatform.forum.service.SortSettings.Direction;
+import org.exoplatform.forum.service.SortSettings.SortField;
 import org.exoplatform.forum.service.Tag;
 import org.exoplatform.forum.service.Topic;
 import org.exoplatform.forum.service.TopicListAccess;
@@ -95,8 +97,6 @@ import org.exoplatform.forum.service.TopicType;
 import org.exoplatform.forum.service.UserProfile;
 import org.exoplatform.forum.service.Utils;
 import org.exoplatform.forum.service.Watch;
-import org.exoplatform.forum.service.SortSettings.Direction;
-import org.exoplatform.forum.service.SortSettings.SortField;
 import org.exoplatform.forum.service.conf.CategoryData;
 import org.exoplatform.forum.service.conf.CategoryEventListener;
 import org.exoplatform.forum.service.conf.ForumData;
@@ -104,6 +104,7 @@ import org.exoplatform.forum.service.conf.ForumInitialDataPlugin;
 import org.exoplatform.forum.service.conf.PostData;
 import org.exoplatform.forum.service.conf.StatisticEventListener;
 import org.exoplatform.forum.service.conf.TopicData;
+import org.exoplatform.forum.service.impl.model.PostFilter;
 import org.exoplatform.forum.service.user.AutoPruneJob;
 import org.exoplatform.ks.common.CommonUtils;
 import org.exoplatform.ks.common.UserHelper;
@@ -111,9 +112,9 @@ import org.exoplatform.ks.common.conf.RoleRulesPlugin;
 import org.exoplatform.ks.common.jcr.JCRSessionManager;
 import org.exoplatform.ks.common.jcr.JCRTask;
 import org.exoplatform.ks.common.jcr.KSDataLocation;
+import org.exoplatform.ks.common.jcr.KSDataLocation.Locations;
 import org.exoplatform.ks.common.jcr.PropertyReader;
 import org.exoplatform.ks.common.jcr.SessionManager;
-import org.exoplatform.ks.common.jcr.KSDataLocation.Locations;
 import org.exoplatform.management.annotations.Managed;
 import org.exoplatform.management.annotations.ManagedDescription;
 import org.exoplatform.management.jmx.annotations.NameTemplate;
@@ -2829,6 +2830,53 @@ public class JCRDataStorage implements DataStorage, ForumNodeTypes {
       return null;
     }
   }
+  
+  @Override
+  public List<Post> getPosts(PostFilter filter, int offset, int limit) throws Exception {
+    SessionProvider sProvider = CommonUtils.createSystemProvider();
+    Node topicNode = getCategoryHome(sProvider).getNode(filter.getCategoryId() + "/" + filter.getForumId() + "/" + filter.getTopicId());
+    StringBuilder strBuilder = new StringBuilder(JCR_ROOT)
+      .append(topicNode.getPath()).append("//element(*,").append(EXO_POST).append(") order by @exo:createdDate ascending");
+    //
+    this.sessionManager = ForumServiceUtils.getSessionManager();
+    sessionManager.openSession();
+    Session session = sessionManager.getCurrentSession();
+
+    //
+    QueryManager qm = session.getWorkspace().getQueryManager();
+    QueryImpl query = (QueryImpl) qm.createQuery(strBuilder.toString(), Query.XPATH);
+    query.setOffset(offset);
+    query.setLimit(limit);
+    QueryResult result = query.execute();
+    NodeIterator iter = result.getNodes();
+    Node currentNode = null;
+    List<Post> posts = new ArrayList<Post>((int)iter.getSize());
+    while (iter.hasNext()) {
+      currentNode = iter.nextNode();
+      posts.add(getPost(currentNode));
+    }
+    return posts;
+  }
+  
+  @Override
+  public int getPostsCount(PostFilter filter) throws Exception {
+    SessionProvider sProvider = CommonUtils.createSystemProvider();
+    Node topicNode = getCategoryHome(sProvider).getNode(filter.getCategoryId() + "/" + filter.getForumId() + "/" + filter.getTopicId());
+    StringBuilder strBuilder = new StringBuilder(JCR_ROOT)
+      .append(topicNode.getPath()).append("//element(*,").append(EXO_POST).append(") order by @exo:createdDate ascending");
+    //
+    this.sessionManager = ForumServiceUtils.getSessionManager();
+    sessionManager.openSession();
+    Session session = sessionManager.getCurrentSession();
+
+    //
+    QueryManager qm = session.getWorkspace().getQueryManager();
+    Query query = qm.createQuery(strBuilder.toString(), Query.XPATH);
+    QueryResult result = query.execute();
+    NodeIterator iter = result.getNodes();
+    
+    return (int)iter.getSize();
+  }
 
   public long getAvailablePost(String categoryId, String forumId, String topicId, String isApproved, String isHidden, String userLogin) throws Exception {
     SessionProvider sProvider = CommonUtils.createSystemProvider();
@@ -2896,7 +2944,8 @@ public class JCRDataStorage implements DataStorage, ForumNodeTypes {
       return null;
     }
   }
-
+  
+  
   public JCRPageList getListPostsByIP(String ip, String strOrderBy) throws Exception {
     SessionProvider sProvider = CommonUtils.createSystemProvider();
     try {
@@ -7814,4 +7863,6 @@ public class JCRDataStorage implements DataStorage, ForumNodeTypes {
   private Calendar getGreenwichMeanTime() {
     return CommonUtils.getGreenwichMeanTime();
   }
+
+
 }
