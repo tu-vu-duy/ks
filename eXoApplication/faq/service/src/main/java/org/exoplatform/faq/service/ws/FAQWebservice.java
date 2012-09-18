@@ -32,6 +32,18 @@ public class FAQWebservice implements ResourceContainer {
   public FAQWebservice() {
   }
 
+
+  /**
+   * The rest can gets response is file has type is *.xml and has format is RSSFeed.
+   * For get public RSS of the category.
+   * 
+   * @param resourceid is categoryId use for get public RSSFeed by this Category.
+   * @return the response is file has type is *.xml and has format is RSSFeed.
+   * @throws Exception the exception
+   * 
+   * @anchor
+   */
+
   @GET
   @Path("rss/{resourceid}")
   @Produces(MediaType.APPLICATION_XML)

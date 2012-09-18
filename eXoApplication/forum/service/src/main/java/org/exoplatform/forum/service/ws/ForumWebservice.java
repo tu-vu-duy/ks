@@ -92,6 +92,7 @@ public class ForumWebservice implements ResourceContainer {
     return null;
   }
 
+
   /**
    * The rest can gets response is recent posts for user and limited by number post.
    * 
@@ -100,12 +101,16 @@ public class ForumWebservice implements ResourceContainer {
    * @param uriInfo is UriInfo for get userId login when we render gadget via gadgets service
    * @return the response is json-data content list recent post for user.
    * @throws Exception the exception
+   * 
+   * @anchor 
    */
+
   @GET
   @Path("getmessage/{maxcount}")
   @Produces(MediaType.APPLICATION_JSON)
-  public Response getMessage(@PathParam("maxcount") int maxcount, @Context SecurityContext sc,
-                                                                  @Context UriInfo uriInfo) throws Exception {
+  public Response getMessage(@PathParam("maxcount") int maxcount, 
+                             @Context SecurityContext sc,
+                             @Context UriInfo uriInfo) throws Exception {
     try {
       String userName = getUserId(sc, uriInfo);
       MessageBean data = getNewPosts(userName, maxcount);
@@ -116,13 +121,17 @@ public class ForumWebservice implements ResourceContainer {
     }
   }
 
+
   /**
    * The rest can gets response is recent public post limited by number post.
    * 
    * @param maxcount is max number post for render in gadget
    * @return the response is json-data content list recent public post.
    * @throws Exception the exception
+   * 
+   * @author
    */
+
   @GET
   @Path("getpublicmessage/{maxcount}")
   @Produces(MediaType.APPLICATION_JSON)
@@ -130,6 +139,17 @@ public class ForumWebservice implements ResourceContainer {
     MessageBean data = getNewPosts(null, maxcount);
     return Response.ok(data, MediaType.APPLICATION_JSON).cacheControl(cc).build();
   }
+
+
+  /**
+   * The rest can gets response is arrays list of IPs Banned start filter by input string.
+   * 
+   * @param str is string use for filter IPs list. If str equals "all", this function will gets all IPs Banned
+   * @return the response is json-data content list IPs banned in all Forum system.
+   * @throws Exception the exception
+   * 
+   * @anchor 
+   */
 
   @GET
   @Path("filter/{strIP}")
@@ -154,6 +174,19 @@ public class ForumWebservice implements ResourceContainer {
     return Response.ok(new BeanToJsons<BanIP>(ipsToJson), JSON_CONTENT_TYPE).cacheControl(cc).build();
   }
 
+
+  /**
+   * The rest can gets response is arrays list of IP Banned start filter by
+   * input string.
+   * 
+   * @param forumId is forum Id for gets list IPs Banned in this forum.
+   * @param str is string use for filter IPs list. If str equals "all", this function will gets all IPs Banned
+   * @return the response is json-data content list IPs banned in one forum has id is forumId.
+   * @throws Exception the exception
+   * 
+   * @anchor
+   */
+
   @GET
   @Path("filterIpBanforum/{strForumId}/{strIP}")
   @Produces(MediaType.APPLICATION_JSON)
@@ -176,6 +209,21 @@ public class ForumWebservice implements ResourceContainer {
     }
     return Response.ok(new BeanToJsons<BanIP>(ipsToJson), JSON_CONTENT_TYPE).cacheControl(cc).build();
   }
+
+
+  /**
+   * The rest can gets response is arrays list of Tags in a topic of the user has start with filter by input string.
+   * 
+   * @param str is string use for filter Tags list
+   *   - str equals " ": The function will return empty arrays list.
+   *   - str equals "onclickForm": The function will return all tags name of topic.
+   *   - str equals any: Use for filter by tag name. The function will return tags name by this filter. 
+   * @param userAndTopicId is userId of user login and topicId by constructor {userId,topicId}
+   * @return the response is json-data content list Tags name.
+   * @throws Exception the exception
+   * 
+   * @anchor
+   */
 
   @GET
   @Path("filterTagNameForum/{userAndTopicId}/{strTagName}")
@@ -201,6 +249,18 @@ public class ForumWebservice implements ResourceContainer {
     return Response.ok(new BeanToJsons<BanIP>(ipsToJson), JSON_CONTENT_TYPE).cacheControl(cc).build();
   }
 
+
+  /**
+   * The rest can gets response is file has type is *.xml and has format is RSSFeed.
+   * For get public RSS of the Category/Forum or Topic.
+   * 
+   * @param resourceid is Id of Category, Forum or Topic to get RSSFeed.
+   * @return the response is file has type is *.xml and has format is RSSFeed.
+   * @throws Exception the exception
+   * 
+   * @anchor
+   */
+
   @GET
   @Path("rss/{resourceid}")
   @Produces(MediaType.APPLICATION_XML)
@@ -214,6 +274,18 @@ public class ForumWebservice implements ResourceContainer {
       return Response.status(Status.INTERNAL_SERVER_ERROR).build();
     }
   }
+
+
+  /**
+   * The rest can gets response is file has type is *.xml and has format is RSSFeed.
+   * For get public RSS of the user.
+   * 
+   * @param resourceid is userId use for get public RSSFeed by this user.
+   * @return the response is file has type is *.xml and has format is RSSFeed.
+   * @throws Exception the exception
+   * 
+   * @anchor
+   */
 
   @GET
   @Path("rss/user/{resourceid}")

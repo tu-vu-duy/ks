@@ -94,6 +94,18 @@ public class PollWebservice implements ResourceContainer {
     return null;
   }
 
+  /**
+   * The rest can gets response is poll object to view voting/detail this poll.
+   * 
+   * @param pollId is pollId use for get poll by id.
+   * @param sc is SecurityContext, use for get userId of current user.
+   * @param uriInfo is UriInfo, use for get userId of current user when can not get from SecurityContext.
+   * @return the response is JSON-data has all properties same Poll object.
+   * @throws Exception the exception
+   * 
+   * @anchor
+   */
+
   @GET
   @Path("/viewpoll/{resourceid}")
   @Produces(MediaType.APPLICATION_JSON)
@@ -142,6 +154,19 @@ public class PollWebservice implements ResourceContainer {
     pollSummary.setIsAdmin("true");
     return Response.ok(pollSummary, MediaType.APPLICATION_JSON).cacheControl(cc).build();
   }
+
+  /**
+   * The rest can voting the poll and gets the response is poll object to only view detail this poll.
+   * 
+   * @param pollId is pollId use for get poll by id.
+   * @param indexVote is the index of options user has selected.
+   * @param sc is SecurityContext, use for get userId of current user.
+   * @param uriInfo is UriInfo, use for get userId of current user when can not get from SecurityContext.
+   * @return the response is JSON-data has all properties same Poll object.
+   * @throws Exception the exception
+   * 
+   * @anchor
+   */
 
   @GET
   @Path("/votepoll/{pollId}/{indexVote}")
