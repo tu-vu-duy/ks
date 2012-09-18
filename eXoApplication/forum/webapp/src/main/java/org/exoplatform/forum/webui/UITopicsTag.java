@@ -364,7 +364,18 @@ public class UITopicsTag extends UIForumKeepStickPageIterator {
 
   @Override
   public List<Integer> getInfoPage() throws Exception {
-    // TODO Auto-generated method stub
-    return null;
+    List<Integer> temp = new ArrayList<Integer>();
+    try {
+      temp.add(topicListAccess.getPageSize());
+      temp.add(topicListAccess.getCurrentPage());
+      temp.add(topicListAccess.getSize());
+      temp.add(topicListAccess.getTotalPages());
+    } catch (Exception e) {
+      temp.add(1);
+      temp.add(1);
+      temp.add(1);
+      temp.add(1);
+    }
+    return temp;
   }
 }

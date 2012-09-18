@@ -212,7 +212,18 @@ public class UISplitTopicForm extends UIForumKeepStickPageIterator implements UI
 
   @Override
   public List<Integer> getInfoPage() throws Exception {
-    
-    return null;
+    List<Integer> temp = new ArrayList<Integer>();
+    try {
+      temp.add(postListAccess.getPageSize());
+      temp.add(postListAccess.getCurrentPage());
+      temp.add(postListAccess.getSize());
+      temp.add(postListAccess.getTotalPages());
+    } catch (Exception e) {
+      temp.add(1);
+      temp.add(1);
+      temp.add(1);
+      temp.add(1);
+    }
+    return temp;
   }
 }
