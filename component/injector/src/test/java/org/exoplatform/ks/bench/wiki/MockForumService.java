@@ -50,6 +50,9 @@ import org.exoplatform.forum.service.TopicType;
 import org.exoplatform.forum.service.UserProfile;
 import org.exoplatform.forum.service.Watch;
 import org.exoplatform.forum.service.impl.model.PostFilter;
+import org.exoplatform.forum.service.impl.model.PostListAccess;
+import org.exoplatform.forum.service.impl.model.TopicFilter;
+import org.exoplatform.forum.service.impl.model.TopicListAccess;
 import org.exoplatform.services.organization.User;
 
 /**
@@ -1289,6 +1292,30 @@ public class MockForumService implements ForumService {
 
   @Override
   public ListAccess<Post> getPosts(PostFilter filter) throws Exception {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ListAccess<Topic> getPageTopic(TopicFilter filter) throws Exception {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ListAccess<Topic> getTopics(TopicFilter filter) throws Exception {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public TopicListAccess getTopicByTag(TopicFilter topicFilter) throws Exception {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public PostListAccess getPostForSplitTopic(PostFilter filter) throws Exception {
     // TODO Auto-generated method stub
     return null;
   }

@@ -64,6 +64,7 @@ import org.exoplatform.forum.service.cache.model.selector.ForumPathSelector;
 import org.exoplatform.forum.service.cache.model.selector.ScopeCacheSelector;
 import org.exoplatform.forum.service.impl.JCRDataStorage;
 import org.exoplatform.forum.service.impl.model.PostFilter;
+import org.exoplatform.forum.service.impl.model.TopicFilter;
 import org.exoplatform.ks.common.conf.RoleRulesPlugin;
 import org.exoplatform.ks.common.jcr.KSDataLocation;
 import org.exoplatform.management.annotations.Managed;
@@ -1253,5 +1254,45 @@ public class CachedDataStorage implements DataStorage, Startable {
   @Override
   public int getPostsCount(PostFilter filter) throws Exception {
     return storage.getPostsCount(filter);
+  }
+
+  @Override
+  public List<Topic> getTopics(TopicFilter filter, int offset, int limit) throws Exception {
+    return storage.getTopics(filter, offset, limit);
+  }
+
+  @Override
+  public int getTopicsCount(TopicFilter filter) throws Exception {
+    return storage.getTopicsCount(filter);
+  }
+
+  @Override
+  public List<Topic> getPageTopic(TopicFilter filter, int offset, int limit) throws Exception {
+    return storage.getPageTopic(filter, offset, limit);
+  }
+
+  @Override
+  public int getPageTopicCount(TopicFilter filter) throws Exception {
+    return storage.getPageTopicCount(filter);
+  }
+
+  @Override
+  public List<Topic> getTopicByTag(TopicFilter filter, int offset, int limit) throws Exception {
+    return storage.getTopicByTag(filter, offset, limit);
+  }
+
+  @Override
+  public int getTopicByTagCount(TopicFilter filter) throws Exception {
+    return storage.getTopicByTagCount(filter);
+  }
+
+  @Override
+  public List<Post> getPostForSplitTopic(PostFilter filter, int offset, int limit) throws Exception {
+    return storage.getPostForSplitTopic(filter, offset, limit);
+  }
+
+  @Override
+  public int getPostForSplitTopicCount(PostFilter filter) throws Exception {
+    return storage.getPostForSplitTopicCount(filter);
   }
 }

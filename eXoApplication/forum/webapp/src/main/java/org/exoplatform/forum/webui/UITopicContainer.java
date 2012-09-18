@@ -17,6 +17,7 @@
 package org.exoplatform.forum.webui;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -36,6 +37,8 @@ import org.exoplatform.forum.service.Topic;
 import org.exoplatform.forum.service.TopicType;
 import org.exoplatform.forum.service.UserProfile;
 import org.exoplatform.forum.service.Utils;
+import org.exoplatform.forum.service.impl.model.TopicFilter;
+import org.exoplatform.forum.service.impl.model.TopicListAccess;
 import org.exoplatform.forum.webui.popup.UIBanIPForumManagerForm;
 import org.exoplatform.forum.webui.popup.UIExportForm;
 import org.exoplatform.forum.webui.popup.UIForumForm;
@@ -151,6 +154,8 @@ public class UITopicContainer extends UIForumKeepStickPageIterator {
   private Map<String, Integer>   pageTopicRemember = new HashMap<String, Integer>();
 
   private Map<String, String>    cssClassMap       = new HashMap<String, String>();
+  
+  private TopicListAccess topicListAccess = null;
 
   public UITopicContainer() throws Exception {
     addUIFormInput(new UIFormStringInput(ForumUtils.GOPAGE_ID_T, null));
@@ -413,7 +418,10 @@ public class UITopicContainer extends UIForumKeepStickPageIterator {
     if (maxTopic <= 0) {
       maxTopic = 10;
     }
-    this.pageList = getForumService().getTopicList(categoryId, forumId, strQuery.toString(), strOrderBy, maxTopic);
+    this.topicListAccess = (TopicListAccess) getForumService().getTopics(new TopicFilter(categoryId, forumId, strQuery.toString(), strOrderBy));
+    this.topicListAccess.initialize(maxTopic, pageSelect);
+    
+    maxPage = topicListAccess.getTotalPages();     
   }
 
   private String getRemoteIP() throws Exception {
@@ -455,13 +463,15 @@ public class UITopicContainer extends UIForumKeepStickPageIterator {
 
   @SuppressWarnings("unchecked")
   public List<Topic> getTopicPageList() throws Exception{
-    if (pageList == null)
+    if (topicListAccess == null)
       return new ArrayList<Topic>();
-    maxPage = this.pageList.getAvailablePage();
+    
     if (this.pageSelect > maxPage)
       this.pageSelect = maxPage;
-    topicList = pageList.getPage(pageSelect);
-    pageSelect = pageList.getCurrentPage();
+    maxPage = this.topicListAccess.getTotalPages();
+    topicList = Arrays.asList(topicListAccess.load(pageSelect));
+    pageSelect = topicListAccess.getCurrentPage();
+    
     pageTopicRemember.put(forumId, pageSelect);
     if (topicList == null)
       topicList = new ArrayList<Topic>();
@@ -580,8 +590,8 @@ public class UITopicContainer extends UIForumKeepStickPageIterator {
           } else {
             if (page == 0) {
               page = 1;
-            } else if (page > topicContainer.pageList.getAvailablePage()) {
-              page = topicContainer.pageList.getAvailablePage();
+            } else if (page > topicContainer.topicListAccess.getTotalPages()) {
+              page = topicContainer.topicListAccess.getTotalPages();
             }
             topicContainer.pageSelect = page;
             event.getRequestContext().addUIComponentToUpdateByAjax(topicContainer);
@@ -1282,5 +1292,22 @@ public class UITopicContainer extends UIForumKeepStickPageIterator {
         uiForm.getForumService().addWatch(-1, forumId, null, uiForm.userProfile.getUserId());
       }
     }
+  }
+
+  @Override
+  public List<Integer> getInfoPage() throws Exception {
+    List<Integer> temp = new ArrayList<Integer>();
+    try {
+      temp.add(topicListAccess.getPageSize());
+      temp.add(topicListAccess.getCurrentPage());
+      temp.add(topicListAccess.getSize());
+      temp.add(topicListAccess.getTotalPages());
+    } catch (Exception e) {
+      temp.add(1);
+      temp.add(1);
+      temp.add(1);
+      temp.add(1);
+    }
+    return temp;
   }
 }

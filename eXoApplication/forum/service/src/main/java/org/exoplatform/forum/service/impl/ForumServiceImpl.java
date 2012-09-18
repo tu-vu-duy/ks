@@ -66,6 +66,8 @@ import org.exoplatform.forum.service.Utils;
 import org.exoplatform.forum.service.Watch;
 import org.exoplatform.forum.service.impl.model.PostFilter;
 import org.exoplatform.forum.service.impl.model.PostListAccess;
+import org.exoplatform.forum.service.impl.model.TopicFilter;
+import org.exoplatform.forum.service.impl.model.TopicListAccess;
 import org.exoplatform.ks.common.CommonUtils;
 import org.exoplatform.ks.common.conf.RoleRulesPlugin;
 import org.exoplatform.management.annotations.ManagedBy;
@@ -459,12 +461,25 @@ public class ForumServiceImpl implements ForumService, Startable {
   public LazyPageList<Topic> getTopicList(String categoryId, String forumId, String strQuery, String strOrderBy, int pageSize) throws Exception {
     return storage.getTopicList(categoryId, forumId, strQuery, strOrderBy, pageSize);
   }
-
+  
+  /**
+   * {@inheritDoc}
+   */
+  public ListAccess<Topic> getTopics(TopicFilter filter) throws Exception {
+    return new TopicListAccess(TopicListAccess.Type.TOPIC_LIST, storage, filter);
+  }
+  
   /**
    * {@inheritDoc}
    */
   public JCRPageList getPageTopic(String categoryId, String forumId, String strQuery, String strOrderBy) throws Exception {
     return storage.getPageTopic(categoryId, forumId, strQuery, strOrderBy);
+  }
+  /**
+   * {@inheritDoc}
+   */
+  public ListAccess<Topic> getPageTopic(TopicFilter filter) throws Exception {
+    return new TopicListAccess(TopicListAccess.Type.TOPIC_PAGE, storage, filter);
   }
 
   /**
@@ -473,7 +488,7 @@ public class ForumServiceImpl implements ForumService, Startable {
   public List<Topic> getTopics(String categoryId, String forumId) throws Exception {
     return storage.getTopics(categoryId, forumId);
   }
-
+  
   /**
    * {@inheritDoc}
    */
@@ -519,7 +534,7 @@ public class ForumServiceImpl implements ForumService, Startable {
   }
   
   public ListAccess<Post> getPosts(PostFilter filter) throws Exception {
-    return new PostListAccess(storage, filter);
+    return new PostListAccess(PostListAccess.Type.POSTS, storage, filter);
   }
 
   /**
@@ -1423,4 +1438,16 @@ public class ForumServiceImpl implements ForumService, Startable {
       CacheUserProfile.removeInCache(userName);
     }
   }
+
+
+  @Override
+  public TopicListAccess getTopicByTag(TopicFilter topicFilter) throws Exception {
+    return new TopicListAccess(TopicListAccess.Type.TOPIC_TAG, storage, topicFilter);
+  }
+
+  @Override
+  public PostListAccess getPostForSplitTopic(PostFilter filter) throws Exception {
+    return new PostListAccess(PostListAccess.Type.POST_SPLIT_TOPIC, storage, filter);
+  }
+
 }

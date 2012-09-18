@@ -22,9 +22,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.exoplatform.forum.ForumUtils;
-import org.exoplatform.forum.service.JCRPageList;
 import org.exoplatform.forum.service.Utils;
-import org.exoplatform.forum.service.impl.model.PostListAccess;
 import org.exoplatform.webui.config.annotation.ComponentConfig;
 import org.exoplatform.webui.core.UIComponent;
 import org.exoplatform.webui.event.Event;
@@ -43,12 +41,7 @@ public abstract class UIForumKeepStickPageIterator extends BaseForumForm {
   public int                         pageSelect      = 1;
 
   public int                         maxPage         = 1;
-
-  @SuppressWarnings("unchecked")
-  public JCRPageList                 pageList;
   
-  public PostListAccess              postListAccess = null;
-
   public int                         totalCheked     = 0;
 
   private int                        endTabPage      = 0;
@@ -63,6 +56,12 @@ public abstract class UIForumKeepStickPageIterator extends BaseForumForm {
 
   private Map<Integer, List<String>> pageCheckedList = new HashMap<Integer, List<String>>();
 
+  public abstract List<Integer> getInfoPage() throws Exception;
+  
+  public void setTotalPage(int totalPage) throws Exception {
+    this.maxPage = totalPage;
+  }
+  
   public UIForumKeepStickPageIterator() throws Exception {
   }
 
@@ -98,30 +97,23 @@ public abstract class UIForumKeepStickPageIterator extends BaseForumForm {
   }
 
   public List<String> getTotalpage() throws Exception {
-    int max_Page = -1;    
-    if (postListAccess != null) {
-      max_Page = postListAccess.getTotalPages();
-    } else {
-      max_Page = pageList.getAvailablePage();
-    }
-    
-    if (this.pageSelect > max_Page)
-      this.pageSelect = max_Page;
+    if (this.pageSelect > maxPage)
+      this.pageSelect = maxPage;
     int page = this.pageSelect;
     if (page <= 3) {
       beginTabPage = 1;
-      if (max_Page <= 7)
-        endTabPage = max_Page;
+      if (maxPage <= 7)
+        endTabPage = maxPage;
       else
         endTabPage = 7;
     } else {
-      if (max_Page > (page + 3)) {
+      if (maxPage > (page + 3)) {
         endTabPage = (int) (page + 3);
         beginTabPage = (int) (page - 3);
       } else {
-        endTabPage = max_Page;
-        if (max_Page > 7)
-          beginTabPage = max_Page - 6;
+        endTabPage = maxPage;
+        if (maxPage > 7)
+          beginTabPage = maxPage - 6;
         else
           beginTabPage = 1;
       }
@@ -133,7 +125,7 @@ public abstract class UIForumKeepStickPageIterator extends BaseForumForm {
     return temp;
   }
 
-  public abstract List<Integer> getInfoPage() throws Exception;
+  
 
   public void setPageSelect(int page) {
     this.pageSelect = page;

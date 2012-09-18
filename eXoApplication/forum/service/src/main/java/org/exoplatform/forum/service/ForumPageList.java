@@ -288,16 +288,7 @@ public class ForumPageList extends JCRPageList {
     topicNew.setCanPost(reader.strings(ForumNodeTypes.EXO_CAN_POST, new String[] {}));
     if (topicNode.isNodeType(ForumNodeTypes.EXO_FORUM_WATCHING))
       topicNew.setEmailNotification(reader.strings(ForumNodeTypes.EXO_EMAIL_WATCHING, new String[] {}));
-    // try {
-    // if (topicNew.getNumberAttachment() > 0) {
-    // String idFirstPost = topicNode.getName().replaceFirst(Utils.TOPIC,
-    // Utils.POST);
-    // Node FirstPostNode = topicNode.getNode(idFirstPost);
-    // topicNew.setAttachments(getAttachmentsByNode(FirstPostNode));
-    // }
-    // } catch (Exception e) {
-    // log.debug("Failed to set attachments in topicNew.", e);
-    // }
+
     return topicNew;
   }
 

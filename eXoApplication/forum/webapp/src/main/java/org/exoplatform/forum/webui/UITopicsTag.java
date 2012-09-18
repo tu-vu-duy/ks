@@ -17,6 +17,7 @@
 package org.exoplatform.forum.webui;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -28,10 +29,13 @@ import org.exoplatform.forum.service.Category;
 import org.exoplatform.forum.service.Forum;
 import org.exoplatform.forum.service.ForumService;
 import org.exoplatform.forum.service.ForumServiceUtils;
+import org.exoplatform.forum.service.JCRPageList;
 import org.exoplatform.forum.service.Tag;
 import org.exoplatform.forum.service.Topic;
 import org.exoplatform.forum.service.UserProfile;
 import org.exoplatform.forum.service.Utils;
+import org.exoplatform.forum.service.impl.model.TopicFilter;
+import org.exoplatform.forum.service.impl.model.TopicListAccess;
 import org.exoplatform.ks.bbcode.core.ExtendedBBCodeProvider;
 import org.exoplatform.ks.common.CommonUtils;
 import org.exoplatform.ks.common.TransformHTML;
@@ -79,6 +83,8 @@ public class UITopicsTag extends UIForumKeepStickPageIterator {
   private List<Topic>       topics            = new ArrayList<Topic>();
 
   private Map<String, Long> mapNumberPagePost = new HashMap<String, Long>();
+  
+  private TopicListAccess topicListAccess = null;
 
   public UITopicsTag() throws Exception {
   }
@@ -158,14 +164,18 @@ public class UITopicsTag extends UIForumKeepStickPageIterator {
 
   @SuppressWarnings("unchecked")
   protected List<Topic> getTopicsTag() throws Exception {
-    this.pageList = getForumService().getTopicByMyTag(userIdAndtagId, strOrderBy);
     int maxTopic = (int)this.userProfile.getMaxTopicInPage();
     if (maxTopic <= 0)
       maxTopic = 10;
-    this.pageList.setPageSize(maxTopic);
-    this.maxPage = this.pageList.getAvailablePage();
-    topics = pageList.getPage(pageSelect);
-    pageSelect = pageList.getCurrentPage();
+
+    //
+    this.topicListAccess = getForumService().getTopicByTag(new TopicFilter(userIdAndtagId, strOrderBy));
+    this.topicListAccess.initialize(maxTopic, pageSelect);   
+    maxPage = topicListAccess.getTotalPages();
+    
+    //
+    topics = Arrays.asList(topicListAccess.load(pageSelect));
+    pageSelect = topicListAccess.getCurrentPage();
     if (topics == null)
       topics = new ArrayList<Topic>();
     for (Topic topic : topics) {
@@ -350,5 +360,11 @@ public class UITopicsTag extends UIForumKeepStickPageIterator {
       uiContainer.strOrderBy = ForumUtils.getOrderBy(uiContainer.strOrderBy, path);
       event.getRequestContext().addUIComponentToUpdateByAjax(uiContainer);
     }
+  }
+
+  @Override
+  public List<Integer> getInfoPage() throws Exception {
+    // TODO Auto-generated method stub
+    return null;
   }
 }

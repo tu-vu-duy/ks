@@ -17,11 +17,51 @@
 package org.exoplatform.forum.service.impl.model;
 
 /**
- * Created by The eXo Platform SAS
- * Author : thanh_vucong
- *          thanh_vucong@exoplatform.com
- * Sep 13, 2012  
+ * Created by The eXo Platform SAS Author : thanh_vucong
+ * thanh_vucong@exoplatform.com Sep 13, 2012
  */
 public class TopicFilter {
+
+  private String categoryId;
+
+  private String forumId;
+
+  private String xpathConditions;
+
+  private String strOrderBy;
+  
+  private String userIdAndtagId;
+  
+  public TopicFilter(String categoryId, String forumId, String xpathConditions, String strOrderBy) {
+    this.categoryId = categoryId;
+    this.forumId = forumId;
+    this.xpathConditions = xpathConditions;
+    this.strOrderBy = strOrderBy;
+  }
+  
+  public TopicFilter(String userIdAndtagId, String strOrderBy) {
+    this.userIdAndtagId = userIdAndtagId;
+    this.strOrderBy = strOrderBy;
+  }
+
+  public String getUserIdAndtagId() {
+    return userIdAndtagId;
+  }
+
+  public String getCategoryId() {
+    return categoryId;
+  }
+
+  public String getForumId() {
+    return forumId;
+  }
+
+  public String getXpathConditions() {
+    return xpathConditions;
+  }
+
+  public String getStrOrderBy() {
+    return strOrderBy;
+  }
 
 }

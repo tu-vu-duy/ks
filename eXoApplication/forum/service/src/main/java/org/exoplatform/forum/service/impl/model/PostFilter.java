@@ -32,6 +32,8 @@ public class PostFilter {
   private String isHidden = null;
   private String userLogin = null;
   
+  private String topicPath = null;
+
   public PostFilter(String categoryId, String forumId, String topicId, String isApproved, String isHidden, String isWaiting, String userLogin) {
     this.categoryId = categoryId;
     this.forumId = forumId;
@@ -41,6 +43,16 @@ public class PostFilter {
     this.isHidden = isHidden;
     this.userLogin = userLogin;
   }
+  
+  public PostFilter(String topicPath) {
+    this.topicPath = topicPath;
+  }
+  
+  
+  public String getTopicPath() {
+    return topicPath;
+  }
+
   
   public String getCategoryId() {
     return categoryId;

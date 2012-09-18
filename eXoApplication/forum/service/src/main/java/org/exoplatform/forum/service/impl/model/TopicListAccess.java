@@ -16,7 +16,9 @@
  */
 package org.exoplatform.forum.service.impl.model;
 
-import org.exoplatform.commons.utils.ListAccess;
+import java.util.List;
+
+import org.exoplatform.forum.service.DataStorage;
 import org.exoplatform.forum.service.Topic;
 
 /**
@@ -25,19 +27,73 @@ import org.exoplatform.forum.service.Topic;
  *          thanh_vucong@exoplatform.com
  * Sep 13, 2012  
  */
-public class TopicListAccess implements ListAccess<Topic>{
+public class TopicListAccess extends AbstractListAccess<Topic> {
 
-  @Override
-  public Topic[] load(int index, int length) throws Exception, IllegalArgumentException {
-    // TODO Auto-generated method stub
-    return null;
+  private TopicFilter  filter = null;
+  private Type  type = Type.ALL;
+  
+  public enum Type {
+    ALL,
+    TOPIC_LIST,
+    TOPIC_PAGE,
+    TOPIC_TAG
   }
-
+  
+  public TopicListAccess(Type type, DataStorage  storage, TopicFilter filter) {
+    this.storage = storage;
+    this.filter = filter;
+    this.type = type;
+  }
+  
+  @Override
+  public Topic[] load(int offset, int limit) throws Exception, IllegalArgumentException {
+    List<Topic> got = null; 
+    switch (type) {
+      case TOPIC_LIST :
+        got = storage.getTopics(filter, offset, limit);
+        break;
+      case TOPIC_PAGE:
+        got = storage.getPageTopic(filter, offset, limit);
+        break;
+      case TOPIC_TAG:
+        got = storage.getTopicByTag(filter, offset, limit);
+        break;
+    }
+    
+    //
+    reCalculate(offset, limit);
+    
+    return got.toArray(new Topic[got.size()]);
+  
+  }
+  
   @Override
   public int getSize() throws Exception {
-    // TODO Auto-generated method stub
-    return 0;
+    if (size < 0) {
+      switch (type) {
+        case TOPIC_LIST :
+          size = storage.getTopicsCount(filter);
+          break;
+        case TOPIC_PAGE:
+          size = storage.getPageTopicCount(filter);
+          break;
+        case TOPIC_TAG:
+          size = storage.getTopicByTagCount(filter);
+          break;
+      }
+    }
+    return size;
   }
 
-
+  public TopicFilter getFilter() {
+    return filter;
+  }
+  
+  @Override
+  public Topic[] load(int pageSelect) throws Exception, IllegalArgumentException {
+    int offset = getOffset(pageSelect);
+    int limit = getPageSize();
+    return load(offset, limit);
+  }
+  
 }

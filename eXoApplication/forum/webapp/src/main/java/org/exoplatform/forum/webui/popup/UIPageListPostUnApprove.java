@@ -17,13 +17,17 @@
 package org.exoplatform.forum.webui.popup;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.exoplatform.container.ExoContainerContext;
 import org.exoplatform.forum.ForumUtils;
 import org.exoplatform.forum.service.ForumService;
+import org.exoplatform.forum.service.JCRPageList;
 import org.exoplatform.forum.service.Post;
 import org.exoplatform.forum.service.Utils;
+import org.exoplatform.forum.service.impl.model.PostFilter;
+import org.exoplatform.forum.service.impl.model.PostListAccess;
 import org.exoplatform.forum.webui.UIForumKeepStickPageIterator;
 import org.exoplatform.forum.webui.UIForumPortlet;
 import org.exoplatform.forum.webui.UITopicDetail;
@@ -64,6 +68,10 @@ public class UIPageListPostUnApprove extends UIForumKeepStickPageIterator implem
   private List<Post>   listAllPost = new ArrayList<Post>();
   
   private boolean isApprove = true;
+  
+  private final int    POST_LIMIT = 6;
+  
+  private PostListAccess postListAccess;
 
   public UIPageListPostUnApprove() throws Exception {
     forumService = (ForumService) ExoContainerContext.getCurrentContainer().getComponentInstanceOfType(ForumService.class);
@@ -89,16 +97,21 @@ public class UIPageListPostUnApprove extends UIForumKeepStickPageIterator implem
 
   @SuppressWarnings("unchecked")
   protected List<Post> getPosts() throws Exception {
-    String app = "", censer = "true";
+    String approve = "", censer = "true";
     if (isApprove) {
-      app = "false";
+      approve = "false";
       censer = "";
     }
-    pageList = forumService.getPosts(this.categoryId, this.forumId, this.topicId, app, ForumUtils.EMPTY_STR, censer, ForumUtils.EMPTY_STR);
-    pageList.setPageSize(6);
-    maxPage = pageList.getAvailablePage();
-    List<Post> posts = pageList.getPage(pageSelect);
-    pageSelect = pageList.getCurrentPage();
+
+    this.postListAccess = (PostListAccess) getForumService().getPosts(new PostFilter(this.categoryId, this.forumId, topicId, approve, ForumUtils.EMPTY_STR, censer, ForumUtils.EMPTY_STR));
+    
+    //1. call Initialize
+    //2. get MaxPage
+    //3. getCurrentPage
+    postListAccess.initialize(POST_LIMIT, pageSelect);
+    maxPage = postListAccess.getTotalPages();     
+    
+    List<Post> posts = Arrays.asList(postListAccess.load(postListAccess.getCurrentPage()));
     if (posts == null)
       posts = new ArrayList<Post>();
     if (!posts.isEmpty()) {
@@ -110,11 +123,13 @@ public class UIPageListPostUnApprove extends UIForumKeepStickPageIterator implem
         }
       }
     }
-    this.listAllPost = pageList.getPage(1);
+    //TODO improves code to avoid get All Posts
+    this.listAllPost = Arrays.asList(postListAccess.load(1));
     return posts;
   }
 
   private Post getPost(String postId) {
+    //TODO get directly from JCR
     for (Post post : this.listAllPost) {
       if (post.getId().equals(postId))
         return post;
@@ -180,5 +195,22 @@ public class UIPageListPostUnApprove extends UIForumKeepStickPageIterator implem
       UITopicDetail topicDetail = forumPortlet.findFirstComponentOfType(UITopicDetail.class);
       event.getRequestContext().addUIComponentToUpdateByAjax(topicDetail);
     }
+  }
+
+  @Override
+  public List<Integer> getInfoPage() throws Exception {
+    List<Integer> temp = new ArrayList<Integer>();
+    try {
+      temp.add(postListAccess.getPageSize());
+      temp.add(postListAccess.getCurrentPage());
+      temp.add(postListAccess.getSize());
+      temp.add(postListAccess.getTotalPages());
+    } catch (Exception e) {
+      temp.add(1);
+      temp.add(1);
+      temp.add(1);
+      temp.add(1);
+    }
+    return temp;
   }
 }

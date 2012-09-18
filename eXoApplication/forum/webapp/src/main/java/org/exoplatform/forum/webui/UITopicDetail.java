@@ -23,7 +23,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.jcr.PathNotFoundException;
 import javax.portlet.ActionResponse;
@@ -210,11 +209,9 @@ public class UITopicDetail extends UIForumKeepStickPageIterator {
   public static final String         SIGNATURE               = "SignatureTypeID";
 
   RenderHelper                       renderHelper            = new RenderHelper();
-  private ThreadLocal<JCRPageList> forumPageListLocal = new ThreadLocal<JCRPageList>();
-  private AtomicInteger pageSelectedLocal = new AtomicInteger();
   
+  private PostListAccess             postListAccess;
   
-
   public UITopicDetail() throws Exception {
     isDoubleClickQuickReply = false;
 
@@ -604,7 +601,7 @@ public class UITopicDetail extends UIForumKeepStickPageIterator {
       }
       this.postListAccess = (PostListAccess) getForumService().getPosts(new PostFilter(this.categoryId, this.forumId, topicId, isApprove, isHidden, isWaiting, userName));
       
-      int size = postListAccess.getSize();
+      postListAccess.getSize();
       int pageSize = (int)this.userProfile.getMaxPostInPage();
       postListAccess.setPageSize(pageSize);
       postListAccess.getTotalPages();
@@ -638,9 +635,6 @@ public class UITopicDetail extends UIForumKeepStickPageIterator {
   public List<Post> getPostPageList() throws Exception {
     Post[] posts = null;
     
-    //this.pageList = forumPageListLocal.get();
-    //this.pageSelect = pageSelectedLocal.get();
-    
     int pageSize = (int)this.userProfile.getMaxPostInPage();
     try {
       try {
@@ -661,11 +655,10 @@ public class UITopicDetail extends UIForumKeepStickPageIterator {
       }
       postListAccess.setCurrentPage(pageSelect);
       this.pageSelect = postListAccess.getCurrentPage();
-      
-      int offset = (pageSelect -1) * pageSize;
+
       maxPage = postListAccess.getTotalPages();
       
-      posts = postListAccess.load(offset, pageSize);
+      posts = postListAccess.load(pageSelect);
       this.pageSelect = postListAccess.getCurrentPage();
       
       pagePostRemember.put(topicId, pageSelect);
@@ -708,7 +701,6 @@ public class UITopicDetail extends UIForumKeepStickPageIterator {
     } catch (Exception e) {
       log.warn("Failed to load posts page: " + e.getMessage(), e);
     }
-    pageSelectedLocal.set(pageSelect);
     return Arrays.asList(posts);
   }
 
@@ -1219,10 +1211,10 @@ public class UITopicDetail extends UIForumKeepStickPageIterator {
   static public class SplitTopicActionListener extends BaseEventListener<UITopicDetail> {
     public void onEvent(Event<UITopicDetail> event, UITopicDetail topicDetail, final String objectId) throws Exception {
       try {
-        JCRPageList pageList = topicDetail.getForumService().getPostForSplitTopic(topicDetail.categoryId + ForumUtils.SLASH + topicDetail.forumId + ForumUtils.SLASH + topicDetail.topicId);
-        if (pageList.getAvailable() > 0) {
+        PostListAccess listAccess = topicDetail.getForumService().getPostForSplitTopic(new PostFilter( topicDetail.categoryId + ForumUtils.SLASH + topicDetail.forumId + ForumUtils.SLASH + topicDetail.topicId));
+        if (listAccess.getTotalPages() > 0) {
           UISplitTopicForm splitTopicForm = topicDetail.openPopup(UISplitTopicForm.class, 700, 400);
-          splitTopicForm.setPageListPost(pageList);
+          splitTopicForm.setPageListPost(listAccess);
           splitTopicForm.setTopic(topicDetail.topic);
         } else {
           warning("UITopicContainer.sms.NotSplit");

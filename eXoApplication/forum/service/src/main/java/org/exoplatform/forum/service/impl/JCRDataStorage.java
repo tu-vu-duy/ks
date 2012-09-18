@@ -105,6 +105,7 @@ import org.exoplatform.forum.service.conf.PostData;
 import org.exoplatform.forum.service.conf.StatisticEventListener;
 import org.exoplatform.forum.service.conf.TopicData;
 import org.exoplatform.forum.service.impl.model.PostFilter;
+import org.exoplatform.forum.service.impl.model.TopicFilter;
 import org.exoplatform.forum.service.user.AutoPruneJob;
 import org.exoplatform.ks.common.CommonUtils;
 import org.exoplatform.ks.common.UserHelper;
@@ -1815,6 +1816,84 @@ public class JCRDataStorage implements DataStorage, ForumNodeTypes {
       return null;
     }
   }
+ 
+  
+  public List<Topic> getTopics(TopicFilter filter, int offset, int limit) throws Exception {
+    SessionProvider sProvider = CommonUtils.createSystemProvider();
+    try {
+      Node categoryNode = getCategoryHome(sProvider).getNode(filter.getCategoryId());
+      Node forumNode = categoryNode.getNode(filter.getForumId());
+      String forumPath = forumNode.getPath();
+      String xpathConditions = null;
+      if (filter.getXpathConditions() != null && filter.getXpathConditions().length() > 0 && filter.getXpathConditions().contains("topicPermission")) {
+        String str = buildXpath(sProvider, forumNode);
+        if (str.length() > 0) {
+          xpathConditions = StringUtils.replace(xpathConditions, "topicPermission", "(" + str + "))");
+        }
+      }
+      String topicQuery = buildTopicQuery(xpathConditions, filter.getStrOrderBy(), forumPath);
+  
+      this.sessionManager = ForumServiceUtils.getSessionManager();
+      try {
+        sessionManager.openSession();
+        Session session = sessionManager.getCurrentSession();
+
+        //
+        QueryManager qm = session.getWorkspace().getQueryManager();
+        QueryImpl query = (QueryImpl) qm.createQuery(topicQuery, Query.XPATH);
+        query.setOffset(offset);
+        query.setLimit(limit);
+        QueryResult result = query.execute();
+        NodeIterator iter = result.getNodes();
+        Node currentNode = null;
+        List<Topic> topics = new ArrayList<Topic>((int)iter.getSize());
+        while (iter.hasNext()) {
+          currentNode = iter.nextNode();
+          topics.add(getTopicNode(currentNode));
+        }
+        return topics;
+      } finally {
+        sessionManager.closeSession();
+      }
+    } catch (Exception e) {
+      if (log.isDebugEnabled()) {
+        log.debug("Failed to retrieve topic list for forum " + filter.getForumId(), e);
+      }
+      return null;
+    }
+  }
+  
+  public int getTopicsCount(TopicFilter filter) throws Exception {
+    SessionProvider sProvider = CommonUtils.createSystemProvider();
+    try {
+      Node categoryNode = getCategoryHome(sProvider).getNode(filter.getCategoryId());
+      Node forumNode = categoryNode.getNode(filter.getForumId());
+      String forumPath = forumNode.getPath();
+      String xpathConditions = null;
+      if (filter.getXpathConditions() != null && filter.getXpathConditions().length() > 0
+          && filter.getXpathConditions().contains("topicPermission")) {
+        String str = buildXpath(sProvider, forumNode);
+        if (str.length() > 0) {
+          xpathConditions = StringUtils.replace(xpathConditions, "topicPermission", "(" + str + "))");
+        }
+      }
+      String topicQuery = buildTopicQuery(xpathConditions, filter.getStrOrderBy(), forumPath);
+
+      this.sessionManager = ForumServiceUtils.getSessionManager();
+      sessionManager.openSession();
+      Session session = sessionManager.getCurrentSession();
+
+      //
+      QueryManager qm = session.getWorkspace().getQueryManager();
+      Query query = qm.createQuery(topicQuery.toString(), Query.XPATH);
+      QueryResult result = query.execute();
+      NodeIterator iter = result.getNodes();
+
+      return (int) iter.getSize();
+    } finally {
+      sessionManager.closeSession();
+    }
+  }
 
   //
   private String buildXpath(SessionProvider sProvider, Node forumNode) throws Exception {
@@ -2839,23 +2918,28 @@ public class JCRDataStorage implements DataStorage, ForumNodeTypes {
       .append(topicNode.getPath()).append("//element(*,").append(EXO_POST).append(") order by @exo:createdDate ascending");
     //
     this.sessionManager = ForumServiceUtils.getSessionManager();
-    sessionManager.openSession();
-    Session session = sessionManager.getCurrentSession();
+    try {
+      sessionManager.openSession();
+      Session session = sessionManager.getCurrentSession();
 
-    //
-    QueryManager qm = session.getWorkspace().getQueryManager();
-    QueryImpl query = (QueryImpl) qm.createQuery(strBuilder.toString(), Query.XPATH);
-    query.setOffset(offset);
-    query.setLimit(limit);
-    QueryResult result = query.execute();
-    NodeIterator iter = result.getNodes();
-    Node currentNode = null;
-    List<Post> posts = new ArrayList<Post>((int)iter.getSize());
-    while (iter.hasNext()) {
-      currentNode = iter.nextNode();
-      posts.add(getPost(currentNode));
+      //
+      QueryManager qm = session.getWorkspace().getQueryManager();
+      QueryImpl query = (QueryImpl) qm.createQuery(strBuilder.toString(), Query.XPATH);
+      query.setOffset(offset);
+      query.setLimit(limit);
+      QueryResult result = query.execute();
+      NodeIterator iter = result.getNodes();
+      Node currentNode = null;
+      List<Post> posts = new ArrayList<Post>((int)iter.getSize());
+      while (iter.hasNext()) {
+        currentNode = iter.nextNode();
+        posts.add(getPost(currentNode));
+      }
+      return posts;
+    } finally {
+      sessionManager.closeSession();
     }
-    return posts;
+    
   }
   
   @Override
@@ -2866,16 +2950,21 @@ public class JCRDataStorage implements DataStorage, ForumNodeTypes {
       .append(topicNode.getPath()).append("//element(*,").append(EXO_POST).append(") order by @exo:createdDate ascending");
     //
     this.sessionManager = ForumServiceUtils.getSessionManager();
-    sessionManager.openSession();
-    Session session = sessionManager.getCurrentSession();
+    try {
+      sessionManager.openSession();
+      Session session = sessionManager.getCurrentSession();
 
-    //
-    QueryManager qm = session.getWorkspace().getQueryManager();
-    Query query = qm.createQuery(strBuilder.toString(), Query.XPATH);
-    QueryResult result = query.execute();
-    NodeIterator iter = result.getNodes();
+      //
+      QueryManager qm = session.getWorkspace().getQueryManager();
+      Query query = qm.createQuery(strBuilder.toString(), Query.XPATH);
+      QueryResult result = query.execute();
+      NodeIterator iter = result.getNodes();
+      
+      return (int)iter.getSize();
+    } finally {
+      sessionManager.closeSession();
+    }
     
-    return (int)iter.getSize();
   }
 
   public long getAvailablePost(String categoryId, String forumId, String topicId, String isApproved, String isHidden, String userLogin) throws Exception {
@@ -7862,6 +7951,219 @@ public class JCRDataStorage implements DataStorage, ForumNodeTypes {
 
   private Calendar getGreenwichMeanTime() {
     return CommonUtils.getGreenwichMeanTime();
+  }
+
+  @Override
+  public List<Topic> getPageTopic(TopicFilter filter, int offset, int limit) throws Exception {
+    SessionProvider sProvider = CommonUtils.createSystemProvider();
+    try {
+      Node categoryNode = getCategoryHome(sProvider).getNode(filter.getCategoryId());
+      Node forumNode = categoryNode.getNode(filter.getForumId());
+      String forumPath = forumNode.getPath();
+      String pathQuery = buildTopicQuery(filter.getXpathConditions(),
+                                         filter.getStrOrderBy(),
+                                         forumPath);
+
+      sessionManager.openSession();
+      Session session = sessionManager.getCurrentSession();
+
+      //
+      QueryManager qm = session.getWorkspace().getQueryManager();
+      QueryImpl query = (QueryImpl) qm.createQuery(pathQuery, Query.XPATH);
+      query.setOffset(offset);
+      query.setLimit(limit);
+      QueryResult result = query.execute();
+      NodeIterator iter = result.getNodes();
+      Node currentNode = null;
+      List<Topic> topics = new ArrayList<Topic>((int) iter.getSize());
+      while (iter.hasNext()) {
+        currentNode = iter.nextNode();
+        topics.add(getTopicNode(currentNode));
+      }
+      return topics;
+
+    } catch (Exception e) {
+      return null;
+    } finally {
+      sessionManager.closeSession();
+    }
+  }
+
+  @Override
+  public int getPageTopicCount(TopicFilter filter) throws Exception {
+    SessionProvider sProvider = CommonUtils.createSystemProvider();
+    try {
+    Node categoryNode = getCategoryHome(sProvider).getNode(filter.getCategoryId());
+    Node forumNode = categoryNode.getNode(filter.getForumId());
+    String forumPath = forumNode.getPath();
+    String pathQuery = buildTopicQuery(filter.getXpathConditions(),
+                                       filter.getStrOrderBy(),
+                                       forumPath);
+
+    sessionManager.openSession();
+    Session session = sessionManager.getCurrentSession();
+
+    //
+    QueryManager qm = session.getWorkspace().getQueryManager();
+    QueryImpl query = (QueryImpl) qm.createQuery(pathQuery, Query.XPATH);
+      QueryResult result = query.execute();
+      NodeIterator iter = result.getNodes();
+
+      return (int) iter.getSize();
+    } finally {
+      sessionManager.closeSession();
+    }
+  }
+
+  @Override
+  public List<Topic> getTopicByTag(TopicFilter filter, int offset, int limit) throws Exception {
+    SessionProvider sProvider = CommonUtils.createSystemProvider();
+    try {
+      Node categoryHome = getCategoryHome(sProvider);
+      StringBuilder builder = new StringBuilder();
+      builder.append(JCR_ROOT).append(categoryHome.getPath()).append("//element(*,exo:topic)");
+      if (filter.getUserIdAndtagId().indexOf(":") > 0) {
+        builder.append("[@exo:tagId='").append(filter.getUserIdAndtagId()).append("']");
+      } else {
+        builder.append("[jcr:contains(@exo:tagId,'").append(filter.getUserIdAndtagId()).append("')]");
+      }
+      builder.append(" order by @exo:isSticky descending");
+      if (Utils.isEmpty(filter.getStrOrderBy())) {
+        builder.append(", @exo:lastPostDate descending");
+      } else {
+        builder.append(", @exo:").append(filter.getStrOrderBy());
+        if (filter.getStrOrderBy().indexOf("lastPostDate") < 0) {
+          builder.append(", @exo:lastPostDate descending");
+        }
+      }
+      String pathQuery = builder.toString();
+
+      sessionManager.openSession();
+      Session session = sessionManager.getCurrentSession();
+
+      //
+      QueryManager qm = session.getWorkspace().getQueryManager();
+      QueryImpl query = (QueryImpl) qm.createQuery(pathQuery, Query.XPATH);
+      query.setOffset(offset);
+      query.setLimit(limit);
+      QueryResult result = query.execute();
+      NodeIterator iter = result.getNodes();
+      Node currentNode = null;
+      List<Topic> topics = new ArrayList<Topic>((int) iter.getSize());
+      while (iter.hasNext()) {
+        currentNode = iter.nextNode();
+        topics.add(getTopicNode(currentNode));
+      }
+      return topics;
+
+    } catch (Exception e) {
+      return null;
+    } finally {
+      sessionManager.closeSession();
+    }
+  }
+
+  @Override
+  public int getTopicByTagCount(TopicFilter filter) throws Exception {
+    SessionProvider sProvider = CommonUtils.createSystemProvider();
+    try {
+      Node categoryHome = getCategoryHome(sProvider);
+      StringBuilder builder = new StringBuilder();
+      builder.append(JCR_ROOT).append(categoryHome.getPath()).append("//element(*,exo:topic)");
+      if (filter.getUserIdAndtagId().indexOf(":") > 0) {
+        builder.append("[@exo:tagId='").append(filter.getUserIdAndtagId()).append("']");
+      } else {
+        builder.append("[jcr:contains(@exo:tagId,'")
+               .append(filter.getUserIdAndtagId())
+               .append("')]");
+      }
+      builder.append(" order by @exo:isSticky descending");
+      if (Utils.isEmpty(filter.getStrOrderBy())) {
+        builder.append(", @exo:lastPostDate descending");
+      } else {
+        builder.append(", @exo:").append(filter.getStrOrderBy());
+        if (filter.getStrOrderBy().indexOf("lastPostDate") < 0) {
+          builder.append(", @exo:lastPostDate descending");
+        }
+      }
+      String pathQuery = builder.toString();
+
+      sessionManager.openSession();
+      Session session = sessionManager.getCurrentSession();
+
+      //
+      QueryManager qm = session.getWorkspace().getQueryManager();
+      QueryImpl query = (QueryImpl) qm.createQuery(pathQuery, Query.XPATH);
+      QueryResult result = query.execute();
+      NodeIterator iter = result.getNodes();
+
+      return (int) iter.getSize();
+    } finally {
+      sessionManager.closeSession();
+    }
+  }
+
+  @Override
+  public List<Post> getPostForSplitTopic(PostFilter filter, int offset, int limit) throws Exception {
+    SessionProvider sProvider = CommonUtils.createSystemProvider();
+    try {
+      Node topicNode = getCategoryHome(sProvider).getNode(filter.getTopicPath());
+      StringBuffer stringBuffer = new StringBuffer(JCR_ROOT)
+      .append(topicNode.getPath()).append("//element(*,").append(EXO_POST).append(")[")
+      .append(Utils.getQueryByProperty("", EXO_USER_PRIVATE, EXO_USER_PRI))
+      .append(Utils.getQueryByProperty("and", EXO_IS_FIRST_POST, "false"))
+      .append("] order by @exo:createdDate ascending");
+
+      sessionManager.openSession();
+      Session session = sessionManager.getCurrentSession();
+
+      //
+      QueryManager qm = session.getWorkspace().getQueryManager();
+      QueryImpl query = (QueryImpl) qm.createQuery(stringBuffer.toString(), Query.XPATH);
+      query.setOffset(offset);
+      query.setLimit(limit);
+      QueryResult result = query.execute();
+      NodeIterator iter = result.getNodes();
+      Node currentNode = null;
+      List<Post> posts = new ArrayList<Post>((int)iter.getSize());
+      while (iter.hasNext()) {
+        currentNode = iter.nextNode();
+        posts.add(getPost(currentNode));
+      }
+      return posts;
+
+    } catch (Exception e) {
+      return null;
+    } finally {
+      sessionManager.closeSession();
+    }
+  }
+
+  @Override
+  public int getPostForSplitTopicCount(PostFilter filter) throws Exception {
+    SessionProvider sProvider = CommonUtils.createSystemProvider();
+    try {
+      Node topicNode = getCategoryHome(sProvider).getNode(filter.getTopicPath());
+      StringBuffer stringBuffer = new StringBuffer(JCR_ROOT)
+      .append(topicNode.getPath()).append("//element(*,").append(EXO_POST).append(")[")
+      .append(Utils.getQueryByProperty("", EXO_USER_PRIVATE, EXO_USER_PRI))
+      .append(Utils.getQueryByProperty("and", EXO_IS_FIRST_POST, "false"))
+      .append("] order by @exo:createdDate ascending");
+
+
+    sessionManager.openSession();
+    Session session = sessionManager.getCurrentSession();
+
+    //
+    QueryManager qm = session.getWorkspace().getQueryManager();
+    QueryImpl query = (QueryImpl) qm.createQuery(stringBuffer.toString(), Query.XPATH);
+      QueryResult result = query.execute();
+      NodeIterator iter = result.getNodes();
+
+      return (int) iter.getSize();
+    } finally {
+      sessionManager.closeSession();
+    }
   }
 
 

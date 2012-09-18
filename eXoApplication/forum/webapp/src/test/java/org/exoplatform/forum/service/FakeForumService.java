@@ -31,6 +31,9 @@ import javax.jcr.NodeIterator;
 import org.exoplatform.commons.utils.ListAccess;
 import org.exoplatform.container.component.ComponentPlugin;
 import org.exoplatform.forum.service.impl.model.PostFilter;
+import org.exoplatform.forum.service.impl.model.PostListAccess;
+import org.exoplatform.forum.service.impl.model.TopicFilter;
+import org.exoplatform.forum.service.impl.model.TopicListAccess;
 import org.exoplatform.ks.bbcode.api.BBCode;
 import org.exoplatform.services.organization.User;
 
@@ -778,6 +781,30 @@ public class FakeForumService implements ForumService {
 
   @Override
   public ListAccess<Post> getPosts(PostFilter filter) throws Exception {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ListAccess<Topic> getTopics(TopicFilter filter) throws Exception {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public ListAccess<Topic> getPageTopic(TopicFilter filter) throws Exception {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public TopicListAccess getTopicByTag(TopicFilter topicFilter) throws Exception {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public PostListAccess getPostForSplitTopic(PostFilter filter) throws Exception {
     // TODO Auto-generated method stub
     return null;
   }

@@ -25,9 +25,9 @@ import java.util.Map;
 
 import javax.jcr.NodeIterator;
 
-import org.exoplatform.commons.utils.ListAccess;
 import org.exoplatform.container.component.ComponentPlugin;
 import org.exoplatform.forum.service.impl.model.PostFilter;
+import org.exoplatform.forum.service.impl.model.TopicFilter;
 import org.exoplatform.ks.common.conf.RoleRulesPlugin;
 import org.exoplatform.ks.common.jcr.KSDataLocation;
 import org.exoplatform.management.annotations.Managed;
@@ -123,8 +123,60 @@ public interface DataStorage {
   void moveForum(List<Forum> forums, String destCategoryPath) throws Exception;
 
   JCRPageList getPageTopic(String categoryId, String forumId, String strQuery, String strOrderBy) throws Exception;
+  
+  /**
+   * 
+   * @param filter
+   * @param offset
+   * @param limit
+   * @return
+   * @throws Exception
+   * @since 2.2.11
+   */
+  List<Topic> getPageTopic(TopicFilter filter, int offset, int limit) throws Exception;
+  
+  /**
+   * 
+   * @param filter
+   * @return
+   * @throws Exception
+   * @since 2.2.11
+   */
+  int getPageTopicCount(TopicFilter filter) throws Exception;
 
+  /**
+   * Gets topic List
+   * @param categoryId
+   * @param forumId
+   * @param xpathConditions
+   * @param strOrderBy
+   * @param pageSize
+   * @return
+   * @throws Exception
+   * @deprecated Use {@link DataStorage#getTopics(TopicFilter, int, int)} instead.
+   *             Will be removed at 2.2.11, 
+   *            
+   */
+  @Deprecated
   LazyPageList<Topic> getTopicList(String categoryId, String forumId, String xpathConditions, String strOrderBy, int pageSize) throws Exception;
+  /**
+   * 
+   * @param filter
+   * @param offset
+   * @param limit
+   * @return
+   * @throws Exception
+   * @since 2.2.11
+   */
+  List<Topic> getTopics(TopicFilter filter, int offset, int limit) throws Exception;
+  /**
+   * 
+   * @param filter
+   * @return
+   * @throws Exception
+   * @since 2.2.11
+   */
+  int getTopicsCount(TopicFilter filter) throws Exception;
 
   List<Topic> getTopics(String categoryId, String forumId) throws Exception;
 
@@ -156,8 +208,24 @@ public interface DataStorage {
 
   JCRPageList getPosts(String categoryId, String forumId, String topicId, String isApproved, String isHidden, String strQuery, String userLogin) throws Exception;
   
+  /**
+   * 
+   * @param filter
+   * @param offset
+   * @param limit
+   * @return
+   * @throws Exception
+   * @since 2.2.11
+   */
   List<Post> getPosts(PostFilter filter, int offset, int limit) throws Exception;
   
+  /**
+   * 
+   * @param filter
+   * @return
+   * @throws Exception
+   * @since 2.2.11
+   */
   int getPostsCount(PostFilter filter) throws Exception;
 
   long getAvailablePost(String categoryId, String forumId, String topicId, String isApproved, String isHidden, String userLogin) throws Exception;
@@ -189,6 +257,26 @@ public interface DataStorage {
   List<Tag> getMyTagInTopic(String[] tagIds) throws Exception;
 
   JCRPageList getTopicByMyTag(String userIdAndtagId, String strOrderBy) throws Exception;
+  
+  /**
+   * 
+   * @param filter
+   * @param offset
+   * @param limit
+   * @return
+   * @throws Exception
+   * @since 2.2.11
+   */
+  List<Topic> getTopicByTag(TopicFilter filter, int offset, int limit) throws Exception;
+  
+  /**
+   * 
+   * @param filter
+   * @return
+   * @throws Exception
+   * @since 2.2.11
+   */
+  int getTopicByTagCount(TopicFilter filter) throws Exception;
 
   void saveTag(Tag newTag) throws Exception;
 
@@ -369,7 +457,26 @@ public interface DataStorage {
   void setViewCountTopic(String path, String userRead);
 
   JCRPageList getPostForSplitTopic(String topicPath) throws Exception;
-
+  
+  /**
+   * 
+   * @param filter
+   * @param offset
+   * @param limit
+   * @return
+   * @throws Exception
+   * @since 2.2.11
+   */
+  List<Post> getPostForSplitTopic(PostFilter filter, int offset, int limit) throws Exception;
+  /**
+   * 
+   * @param filter
+   * @return
+   * @throws Exception
+   * @since 2.2.11
+   */
+  int getPostForSplitTopicCount(PostFilter filter) throws Exception;
+  
   void movePost(String[] postPaths, String destTopicPath, boolean isCreatNewTopic, String mailContent, String link) throws Exception;
 
   void mergeTopic(String srcTopicPath, String destTopicPath, String mailContent, String link) throws Exception;

@@ -27,6 +27,9 @@ import javax.jcr.NodeIterator;
 import org.exoplatform.commons.utils.ListAccess;
 import org.exoplatform.container.component.ComponentPlugin;
 import org.exoplatform.forum.service.impl.model.PostFilter;
+import org.exoplatform.forum.service.impl.model.PostListAccess;
+import org.exoplatform.forum.service.impl.model.TopicFilter;
+import org.exoplatform.forum.service.impl.model.TopicListAccess;
 import org.exoplatform.services.organization.User;
 
 /**
@@ -214,6 +217,15 @@ public interface ForumService extends ForumServiceLegacy {
   JCRPageList getPageTopic(String categoryId, String forumId, String strQuery, String strOrderBy) throws Exception;
 
   /**
+   * 
+   * @param filter
+   * @return
+   * @throws Exception
+   * @since 2.2.11
+   */
+  ListAccess<Topic> getPageTopic(TopicFilter filter) throws Exception;
+  
+  /**
    * Gets the page topic by user.
    * 
    * @param userName the user name
@@ -263,7 +275,7 @@ public interface ForumService extends ForumServiceLegacy {
    * @throws Exception the exception
    */
   List<Topic> getTopics(String categoryId, String forumId) throws Exception;
-
+  
   /**
    * Gets the topic.
    * 
@@ -386,6 +398,7 @@ public interface ForumService extends ForumServiceLegacy {
    * @param filter
    * @return
    * @throws Exception
+   * @since 2.2.11
    */
   ListAccess<Post> getPosts(PostFilter filter) throws Exception;
 
@@ -1327,6 +1340,17 @@ public interface ForumService extends ForumServiceLegacy {
   JCRPageList getPageTopicByType(String type) throws Exception;
 
   /**
+   * 
+   * @param filter
+   * @param offset
+   * @param limit
+   * @return
+   * @throws Exception
+   * @since 2.2.11
+   */
+  ListAccess<Topic> getTopics(TopicFilter filter) throws Exception;
+  
+  /**
    * get list of topics
    * 
    * @param categoryId id of category
@@ -1440,4 +1464,23 @@ public interface ForumService extends ForumServiceLegacy {
    * @throws Exception 
    */
   public void removeCacheUserProfile(String userName) throws Exception;
+
+  /**
+   * 
+   * @param topicFilter
+   * @return
+   * @throws Exception
+   * @since 2.2.11
+   */
+  public TopicListAccess getTopicByTag(TopicFilter topicFilter) throws Exception;
+  /**
+   * 
+   * @param filter
+   * @param offset
+   * @param limit
+   * @return
+   * @throws Exception
+   * @since 2.2.11
+   */
+  public PostListAccess getPostForSplitTopic(PostFilter filter) throws Exception;
 }

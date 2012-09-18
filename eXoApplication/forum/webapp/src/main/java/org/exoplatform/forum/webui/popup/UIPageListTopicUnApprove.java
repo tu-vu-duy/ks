@@ -17,12 +17,15 @@
 package org.exoplatform.forum.webui.popup;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.exoplatform.forum.ForumUtils;
 import org.exoplatform.forum.service.ForumNodeTypes;
 import org.exoplatform.forum.service.Topic;
 import org.exoplatform.forum.service.Utils;
+import org.exoplatform.forum.service.impl.model.TopicFilter;
+import org.exoplatform.forum.service.impl.model.TopicListAccess;
 import org.exoplatform.forum.webui.UIForumKeepStickPageIterator;
 import org.exoplatform.forum.webui.UIForumPortlet;
 import org.exoplatform.forum.webui.UITopicContainer;
@@ -36,8 +39,8 @@ import org.exoplatform.webui.config.annotation.EventConfig;
 import org.exoplatform.webui.core.UIPopupComponent;
 import org.exoplatform.webui.core.lifecycle.UIFormLifecycle;
 import org.exoplatform.webui.event.Event;
-import org.exoplatform.webui.event.EventListener;
 import org.exoplatform.webui.event.Event.Phase;
+import org.exoplatform.webui.event.EventListener;
 import org.exoplatform.webui.form.input.UICheckBoxInput;
 
 /**
@@ -63,6 +66,10 @@ public class UIPageListTopicUnApprove extends UIForumKeepStickPageIterator imple
   private int         typeApprove = Utils.APPROVE;
 
   private List<Topic> topics;
+  
+  private final int    TOPIC_LIMIT = 6;
+  
+  private TopicListAccess topicListAccess;
 
   public UIPageListTopicUnApprove() throws Exception {
     this.setActions(new String[] { "ApproveTopic", "Cancel" });
@@ -94,11 +101,20 @@ public class UIPageListTopicUnApprove extends UIForumKeepStickPageIterator imple
   @SuppressWarnings("unchecked")
   protected List<Topic> getTopicsUnApprove() throws Exception {
     String type = (typeApprove == Utils.WAITING) ? ForumNodeTypes.EXO_IS_WAITING : (typeApprove == Utils.APPROVE) ? ForumNodeTypes.EXO_IS_APPROVED : ForumNodeTypes.EXO_IS_ACTIVE;
-    pageList = getForumService().getPageTopic(this.categoryId, this.forumId, "@" + type + "='" + ((typeApprove == Utils.WAITING) ? "true" : "false") + "'", ForumUtils.EMPTY_STR);
-    pageList.setPageSize(6);
-    maxPage = pageList.getAvailablePage();
-    topics = pageList.getPage(pageSelect);
-    pageSelect = pageList.getCurrentPage();
+    
+    
+    this.topicListAccess = (TopicListAccess) getForumService().getPageTopic(new TopicFilter(this.categoryId, this.forumId, "@" + type + "='" + ((typeApprove == Utils.WAITING) ? "true" : "false") + "'", ForumUtils.EMPTY_STR));
+
+    //1. call Initialize
+    //2. get MaxPage
+    //3. getCurrentPage
+    topicListAccess.initialize(TOPIC_LIMIT, pageSelect);
+    maxPage = topicListAccess.getTotalPages();     
+    
+    topics = Arrays.asList(topicListAccess.load(topicListAccess.getCurrentPage()));
+
+    pageSelect = topicListAccess.getCurrentPage();
+    
     if (topics == null)
       topics = new ArrayList<Topic>();
     for (Topic topic : topics) {
@@ -182,5 +198,22 @@ public class UIPageListTopicUnApprove extends UIForumKeepStickPageIterator imple
       UITopicContainer topicContainer = forumPortlet.findFirstComponentOfType(UITopicContainer.class);
       event.getRequestContext().addUIComponentToUpdateByAjax(topicContainer);
     }
+  }
+
+  @Override
+  public List<Integer> getInfoPage() throws Exception {
+    List<Integer> temp = new ArrayList<Integer>();
+    try {
+      temp.add(topicListAccess.getPageSize());
+      temp.add(topicListAccess.getCurrentPage());
+      temp.add(topicListAccess.getSize());
+      temp.add(topicListAccess.getTotalPages());
+    } catch (Exception e) {
+      temp.add(1);
+      temp.add(1);
+      temp.add(1);
+      temp.add(1);
+    }
+    return temp;
   }
 }
