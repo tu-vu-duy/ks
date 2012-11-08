@@ -57,19 +57,6 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>org.exoplatform.commons</groupId>
-      <artifactId>exo.platform.commons.testing</artifactId>
-      <version>${org.exoplatform.commons.version}</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.testng</groupId>
-      <artifactId>testng</artifactId>
-	  <version>${org.testng.version}</version>
-      <classifier>jdk15</classifier>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
       <groupId>org.exoplatform.portal</groupId>
       <artifactId>exo.portal.component.test.core</artifactId>
       <scope>test</scope>
@@ -84,6 +71,63 @@
       <artifactId>hsqldb</artifactId>
       <version>${org.hsqldb.version}</version>
       <scope>test</scope>
+    </dependency>
+    <!-- for test -->
+    <dependency>
+      <groupId>commons-io</groupId>
+      <artifactId>commons-io</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.exoplatform.portal</groupId>
+      <artifactId>exo.portal.component.identity</artifactId>
+      <version>${org.exoplatform.portal.version}</version>
+      <type>test-jar</type>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.exoplatform.portal</groupId>
+      <artifactId>exo.portal.component.portal</artifactId>
+      <version>${org.exoplatform.portal.version}</version>
+      <type>test-jar</type>
+      <scope>test</scope>
+    </dependency>
+    
+    <!-- Chromattic -->
+    <dependency>
+      <groupId>org.chromattic</groupId>
+      <artifactId>chromattic.apt</artifactId>
+      <version>${org.chromattic.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.chromattic</groupId>
+      <artifactId>chromattic.api</artifactId>
+      <version>${org.chromattic.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.chromattic</groupId>
+      <artifactId>chromattic.spi</artifactId>
+      <version>${org.chromattic.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.chromattic</groupId>
+      <artifactId>chromattic.core</artifactId>
+      <version>${org.chromattic.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.chromattic</groupId>
+      <artifactId>chromattic.ext</artifactId>
+      <version>${org.chromattic.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.chromattic</groupId>
+      <artifactId>chromattic.common</artifactId>
+      <version>${org.chromattic.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.chromattic</groupId>
+      <artifactId>chromattic.metamodel</artifactId>
+      <version>${org.chromattic.version}</version>
     </dependency>
   </dependencies>
 </project>
