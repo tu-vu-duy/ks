@@ -67,11 +67,10 @@ public class JCRDataStorageTestCase extends AbstractJCRTestCase {
   private JCRDataStorage storage;
   @Override
   public void beforeRunBare() throws Exception {
-    setGetAllConfig(false);
     super.beforeRunBare();
   }
   
-  protected void setUp() throws Exception {
+  public void setUp() throws Exception {
     storage = new JCRDataStorage();
     KSDataLocation locator = new KSDataLocation("portal-test", getRepositoryService());
     storage.setDataLocator(locator);
@@ -80,7 +79,6 @@ public class JCRDataStorageTestCase extends AbstractJCRTestCase {
   public void testConstructor() {
     KSDataLocation location = new KSDataLocation("bar");
     JCRDataStorage storage = new JCRDataStorage(location);
-    // assertEquals(storage.getRepository(), "foo");
     assertEquals(storage.getWorkspace(), "bar");
     assertEquals(storage.getPath(), location.getForumHomeLocation());
   }
@@ -129,7 +127,6 @@ public class JCRDataStorageTestCase extends AbstractJCRTestCase {
 
   public void testGetAvatar() throws Exception {
     String avatarLocation = storage.getDataLocation().getAvatarsLocation() + "/username2";
-    // assertNull(storage.getUserAvatar("username2"));
     addFile(avatarLocation);
 
     ForumAttachment attachment = storage.getUserAvatar("username2");

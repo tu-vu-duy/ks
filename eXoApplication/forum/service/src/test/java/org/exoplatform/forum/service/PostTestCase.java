@@ -19,7 +19,7 @@ package org.exoplatform.forum.service;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.exoplatform.forum.base.BaseForumServiceTestCase;
+import org.exoplatform.forum.base.BaseServiceTestCase;
 
 /**
  * Created by The eXo Platform SAS
@@ -27,7 +27,7 @@ import org.exoplatform.forum.base.BaseForumServiceTestCase;
  *          tuvd@exoplatform.com
  * Oct 5, 2012  
  */
-public class PostTestCase extends BaseForumServiceTestCase {
+public class PostTestCase extends BaseServiceTestCase {
 
   @Override
   public void setUp() throws Exception {

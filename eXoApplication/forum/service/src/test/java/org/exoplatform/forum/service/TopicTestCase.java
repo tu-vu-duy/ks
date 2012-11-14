@@ -23,7 +23,7 @@ import java.util.List;
 import javax.jcr.Node;
 import javax.jcr.Session;
 
-import org.exoplatform.forum.base.BaseForumServiceTestCase;
+import org.exoplatform.forum.base.BaseServiceTestCase;
 import org.exoplatform.ks.common.UserHelper;
 import org.exoplatform.ks.common.jcr.SessionManager;
 
@@ -33,7 +33,7 @@ import org.exoplatform.ks.common.jcr.SessionManager;
  *          tuvd@exoplatform.com
  * Oct 5, 2012  
  */
-public class TopicTestCase extends BaseForumServiceTestCase {
+public class TopicTestCase extends BaseServiceTestCase {
 
   @Override
   public void setUp() throws Exception {

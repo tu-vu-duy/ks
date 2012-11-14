@@ -16,7 +16,7 @@
  */
 package org.exoplatform.forum.service;
 
-import org.exoplatform.forum.base.BaseForumServiceTestCase;
+import org.exoplatform.forum.base.BaseServiceTestCase;
 
 /**
  * Created by The eXo Platform SAS
@@ -24,7 +24,7 @@ import org.exoplatform.forum.base.BaseForumServiceTestCase;
  *          tuvd@exoplatform.com
  * Oct 5, 2012  
  */
-public class UserProfileTestCase extends BaseForumServiceTestCase {
+public class UserProfileTestCase extends BaseServiceTestCase {
 
   @Override
   public void setUp() throws Exception {

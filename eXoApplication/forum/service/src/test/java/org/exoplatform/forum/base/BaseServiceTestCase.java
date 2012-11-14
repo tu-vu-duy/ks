@@ -24,9 +24,12 @@ import java.util.Date;
 import java.util.List;
 import java.util.Random;
 
+import org.exoplatform.component.test.AbstractKernelTest;
 import org.exoplatform.component.test.ConfigurationUnit;
 import org.exoplatform.component.test.ConfiguredBy;
 import org.exoplatform.component.test.ContainerScope;
+import org.exoplatform.component.test.KernelBootstrap;
+import org.exoplatform.container.PortalContainer;
 import org.exoplatform.forum.service.Category;
 import org.exoplatform.forum.service.Forum;
 import org.exoplatform.forum.service.ForumAdministration;
@@ -58,7 +61,7 @@ import org.exoplatform.services.security.MembershipEntry;
   @ConfigurationUnit(scope = ContainerScope.PORTAL, path = "conf/standalone/exo.forum.test.jcr-configuration.xml"),
   @ConfigurationUnit(scope = ContainerScope.PORTAL, path = "conf/standalone/exo.forum.test.portal-configuration.xml")
 })
-public abstract class BaseForumServiceTestCase extends BaseTestCase {
+public abstract class BaseServiceTestCase extends AbstractKernelTest {
   public static final String         USER_ROOT         = "root";
 
   public static final String         USER_DEMO         = "demo";
@@ -77,6 +80,8 @@ public abstract class BaseForumServiceTestCase extends BaseTestCase {
 
   public String                      topicId;
 
+  public static KernelBootstrap      bootstrap;
+  
   @Override
   public void setUp() throws Exception {
     //
@@ -89,17 +94,38 @@ public abstract class BaseForumServiceTestCase extends BaseTestCase {
 
   @Override
   public void tearDown() throws Exception {
-
     removeAllData();
     //
     end();
+  }
+
+  @Override
+  protected void beforeRunBare() throws Exception {
+    if (bootstrap == null) {
+      super.beforeRunBare();
+    }
+  }
+
+  @Override
+  protected void afterRunBare() {
+    if (bootstrap == null) {
+      super.afterRunBare();
+    }
+  }
+  
+  @Override
+  public PortalContainer getContainer() {
+    if (bootstrap == null) {
+      return super.getContainer();
+    }
+    return bootstrap.getContainer();
   }
 
   @SuppressWarnings("unchecked")
   public <T> T getService(Class<T> clazz) {
     return (T) getContainer().getComponentInstanceOfType(clazz);
   }
-  
+
   public void initDefaultData() throws Exception {
     Category cat = createCategory(getId(Utils.CATEGORY));
     this.categoryId = cat.getId();

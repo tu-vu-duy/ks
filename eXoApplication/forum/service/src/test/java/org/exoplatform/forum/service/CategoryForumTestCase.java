@@ -8,7 +8,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import org.exoplatform.forum.base.BaseForumServiceTestCase;
+import org.exoplatform.forum.base.BaseServiceTestCase;
 
 /**
  * Created by The eXo Platform SARL
@@ -17,7 +17,7 @@ import org.exoplatform.forum.base.BaseForumServiceTestCase;
  * July 3, 2007  
  */
 
-public class CategoryForumTestCase extends BaseForumServiceTestCase {
+public class CategoryForumTestCase extends BaseServiceTestCase {
 
   @Override
   public void setUp() throws Exception {

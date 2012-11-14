@@ -23,7 +23,7 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.List;
 
-import org.exoplatform.forum.base.BaseForumServiceTestCase;
+import org.exoplatform.forum.base.BaseServiceTestCase;
 
 /**
  * Created by The eXo Platform SAS
@@ -31,7 +31,7 @@ import org.exoplatform.forum.base.BaseForumServiceTestCase;
  *          tuvd@exoplatform.com
  * Oct 5, 2012  
  */
-public class SearchTestCase extends BaseForumServiceTestCase {
+public class SearchTestCase extends BaseServiceTestCase {
 
   @Override
   public void setUp() throws Exception {

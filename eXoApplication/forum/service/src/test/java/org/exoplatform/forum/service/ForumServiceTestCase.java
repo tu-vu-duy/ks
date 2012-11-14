@@ -27,7 +27,7 @@ import java.util.List;
 import javax.jcr.ImportUUIDBehavior;
 
 import org.apache.commons.io.FileUtils;
-import org.exoplatform.forum.base.BaseForumServiceTestCase;
+import org.exoplatform.forum.base.BaseServiceTestCase;
 
 /**
  * Created by The eXo Platform SAS
@@ -35,7 +35,7 @@ import org.exoplatform.forum.base.BaseForumServiceTestCase;
  *          tuvd@exoplatform.com
  * Oct 5, 2012  
  */
-public class ForumServiceTestCase  extends BaseForumServiceTestCase {
+public class ForumServiceTestCase  extends BaseServiceTestCase {
 
   @Override
   public void setUp() throws Exception {
