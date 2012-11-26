@@ -538,28 +538,6 @@ public class UITopicDetail extends UIForumKeepStickPageIterator {
     return true;
   }
 
-  public String getImageUrl(String imagePath) throws Exception {
-    String url = ForumUtils.EMPTY_STR;
-    try {
-      url = CommonUtils.getImageUrl(imagePath);
-    } catch (Exception e) {
-      log.debug("Failed to get image url.", e);
-    }
-    return url;
-  }
-
-  public String getFileSource(ForumAttachment attachment) throws Exception {
-    DownloadService dservice = getApplicationComponent(DownloadService.class);
-    try {
-      InputStream input = attachment.getInputStream();
-      String fileName = attachment.getName();
-      return ForumSessionUtils.getFileSource(input, fileName, dservice);
-    } catch (PathNotFoundException e) {
-      log.warn("Failed get file source: " + e.getMessage(), e);
-      return null;
-    }
-  }
-
   public String getAvatarUrl(String userId) throws Exception {
     return ForumSessionUtils.getUserAvatarURL(userId, getForumService());
   }
@@ -613,6 +591,14 @@ public class UITopicDetail extends UIForumKeepStickPageIterator {
     return this.isModeratePost;
   }
 
+  private UIAttachmentContainer getUIAttachmentContainer(String postId) {
+    return getChildById(UIAttachmentContainer.ID_PREFIX.concat(postId));
+  }
+
+  private UIAttachmentContainer addUIAttachmentContainer(Post post) throws Exception {
+    return addChild(UIAttachmentContainer.class, null, null).initContainer(post);
+  }
+
   @SuppressWarnings("unchecked")
   public List<Post> getPostPageList() throws Exception {
     List<Post> posts = new ArrayList<Post>();
@@ -642,14 +628,24 @@ public class UITopicDetail extends UIForumKeepStickPageIterator {
         posts = new ArrayList<Post>();
       List<String> userNames = new ArrayList<String>();
       mapUserProfile.clear();
+      UIAttachmentContainer attachmentContainer;
+      UICheckBoxInput checkBoxInput;
       for (Post post : posts) {
         if (!userNames.contains(post.getOwner()))
           userNames.add(post.getOwner());
-        if (getUICheckBoxInput(post.getId()) != null) {
-          getUICheckBoxInput(post.getId()).setChecked(false);
+        if ((checkBoxInput = getUICheckBoxInput(post.getId())) != null) {
+          checkBoxInput.setChecked(false);
         } else {
           addUIFormInput(new UICheckBoxInput(post.getId(), post.getId(), false));
         }
+
+        //
+        if ((attachmentContainer = getUIAttachmentContainer(post.getId())) != null) {
+          attachmentContainer.setAttachments(post.getAttachments());
+        } else {
+          addUIAttachmentContainer(post);
+        }
+        
         this.IdLastPost = post.getId();
       }
       if (!lastPoistIdSave.equals(IdLastPost)) {

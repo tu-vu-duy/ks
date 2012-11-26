@@ -144,10 +144,10 @@
 							</div>
 							<div class="PostContentContainer">
 						<% 
-							boolean hasAttachment = false ;
-							List attachments = post.getAttachments() ;
-							if(attachments != null && attachments.size() > 0) hasAttachment = true;
-							if(isDisplayAvatar && !hasAttachment) { 
+						 boolean hasAttachment = false ;
+            
+            UIAttachmentContainer attContainer = uicomponent.getUIAttachmentContainer(postId);
+            if(isDisplayAvatar && !attContainer.isHasAttachment()) { 
 						%>	
 							<div class="PostContent">
 						<% } else { %>
@@ -155,47 +155,14 @@
 						<% } %>
 								<div id="$idMessage">$message</div>
 							</div>
-							<% if(hasAttachment) {%>
-							<div class="AttachmentContainer">
-								<h5 class="AttachmentTitle"><%=_ctx.appRes("UITopicDetail.label.Attachments");%>:</h5>
-								<div class="AttachmentContent ClearFix">
-								<% for(attachment in attachments) {
-										 String urlFile = uicomponent.getFileSource(attachment) ;
-										 String titleFile = attachment.getName();
-							 		 	 String fileName = ForumUtils.getSubString(titleFile, 30);
-								 		 long sizeNumber = attachment.getSize() ;
-								 		 String size = ForumUtils.getSizeFile(sizeNumber) ;
-								 		 String typeFile = attachment.mimeType ;
-								 		 String pathAtt = urlFile.replaceAll("&","(omu)");
-								%>
-										<div class="AttachmentBox">
-										<% if(typeFile.indexOf("image") >= 0) {
-										   String attLink = uicomponent.getImageUrl(attachment.getPath());
-										%>
-											<a href="#" class="Image"><img onclick="eXo.forum.UIForumPortlet.showPicture('$attLink');" class="AttachImage" id="imgView${fileName}" src="$attLink" height="100px;" alt="$titleFile"/></a> 
-						 					<div class="LabelBox">
-						 						<a class="AttachmentIcon JPGIcon" onclick="if(eXo.core.Browser.browserType == 'ie') {<%=uicomponent.event("DownloadAttach");%>; } ajaxRedirect('$urlFile'); return false;" href="javaScript: void(0)" title="$titleFile">$fileName</a>
-						 						<div class="Size"><%=_ctx.appRes("UITopicDetail.label.Size");%>: ${size}</div>
-						 						<div class="Action">
-						 							<a href="#" class="Icon MaxView" onclick="eXo.forum.UIForumPortlet.showPicture('$attLink');"><%=_ctx.appRes("UITopicDetail.action.View");%></a>
-													<a class="Icon Download" onclick="if(eXo.core.Browser.browserType == 'ie') {<%=uicomponent.event("DownloadAttach");%>; } ajaxRedirect('$urlFile'); return false;" href="javaScript: void(0)"><%=_ctx.appRes("UITopicDetail.action.Download");%></a>
-						 						</div>
-						 					</div>
-									<% }else { 
-												String typeFileIcon = typeFile.substring((typeFile.indexOf("/")+1));
-									%>
-										<div class="LabelBox">
-											<a class="AttachmentIcon ${typeFileIcon}Icon" onclick="if(eXo.core.Browser.browserType == 'ie') {<%=uicomponent.event("DownloadAttach");%>; } ajaxRedirect('$urlFile'); return false;" href="javaScript: void(0)">
-												$fileName
-											</a>
-											<div class="Size"><%=_ctx.appRes("UITopicDetail.label.Size");%>: ${size}</div>
-										</div>
-									<% } %>
-									</div>
-								<% } %>
-								</div>
-							</div>
-							<% } %>
+
+              <!-- Attachment -->
+              
+              <%
+								uicomponent.renderChild(attContainer) ;		
+							%>
+              
+              <!-- /Attachment -->
 							<%if(userInfo.getIsDisplaySignature() && userInfo.getSignature() != null && userInfo.getSignature().length() > 0) {
 									post.setMessage(userInfo.getSignature());
 									post.setId(uicomponent.SIGNATURE);

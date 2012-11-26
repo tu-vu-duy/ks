@@ -36,6 +36,7 @@ import org.exoplatform.forum.service.Topic;
 import org.exoplatform.forum.service.UserProfile;
 import org.exoplatform.forum.service.Utils;
 import org.exoplatform.forum.webui.BaseForumForm;
+import org.exoplatform.forum.webui.UIAttachmentContainer;
 import org.exoplatform.forum.webui.UIForumPageIterator;
 import org.exoplatform.forum.webui.UIForumPortlet;
 import org.exoplatform.ks.common.CommonUtils;
@@ -131,9 +132,17 @@ public class UIViewTopic extends BaseForumForm implements UIPopupComponent {
 
   private void updateUserProfiles(List<Post> posts) throws Exception {
     List<String> userNames = new ArrayList<String>();
+    UIAttachmentContainer attachmentContainer;
     for (Post post : posts) {
       if (!userNames.contains(post.getOwner())) {
         userNames.add(post.getOwner());
+      }
+
+      //
+      if ((attachmentContainer = getUIAttachmentContainer(post.getId())) != null) {
+        attachmentContainer.setAttachments(post.getAttachments());
+      } else {
+        addUIAttachmentContainer(post);
       }
     }
     if (userNames.size() > 0) {
@@ -194,15 +203,12 @@ public class UIViewTopic extends BaseForumForm implements UIPopupComponent {
     return url;
   }
 
-  protected String getFileSource(ForumAttachment attachment) throws Exception {
-    DownloadService dservice = getApplicationComponent(DownloadService.class);
-    try {
-      InputStream input = attachment.getInputStream();
-      String fileName = attachment.getName();
-      return ForumSessionUtils.getFileSource(input, fileName, dservice);
-    } catch (PathNotFoundException e) {
-      return null;
-    }
+  private UIAttachmentContainer getUIAttachmentContainer(String postId) {
+    return getChildById(UIAttachmentContainer.ID_PREFIX.concat(postId));
+  }
+
+  private UIAttachmentContainer addUIAttachmentContainer(Post post) throws Exception {
+    return addChild(UIAttachmentContainer.class, null, null).initContainer(post);
   }
 
   protected String getAvatarUrl(String userId) throws Exception {

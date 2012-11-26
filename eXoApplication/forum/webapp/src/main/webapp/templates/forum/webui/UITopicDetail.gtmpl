@@ -1,20 +1,23 @@
 <%  
-  import org.exoplatform.forum.webui.UIPostRules ;
-  import org.exoplatform.forum.webui.UIForumLinks ;
-  import org.exoplatform.forum.webui.UIForumKeepStickPageIterator ;
+  import org.exoplatform.web.application.JavascriptManager;
+
+  import org.exoplatform.ks.common.UserHelper; 
+  import org.exoplatform.ks.common.user.CommonContact;
+
   import org.exoplatform.forum.service.Tag;
   import org.exoplatform.forum.service.Post ;
   import org.exoplatform.forum.service.Topic ;
   import org.exoplatform.forum.service.Forum ;
-  import org.exoplatform.ks.common.UserHelper; 
-  import org.exoplatform.services.jcr.ext.common.SessionProvider;
-  import org.exoplatform.forum.ForumUtils;
-  import org.exoplatform.forum.TimeConvertUtils;
+  import org.exoplatform.forum.ForumSessionUtils;
   import org.exoplatform.forum.service.UserProfile ;
   import org.exoplatform.forum.service.ForumServiceUtils;
-  import org.exoplatform.ks.common.user.CommonContact;
-  import org.exoplatform.web.application.JavascriptManager;
-  import org.exoplatform.forum.ForumSessionUtils;
+  
+  import org.exoplatform.forum.ForumUtils;
+  import org.exoplatform.forum.TimeConvertUtils;
+  import org.exoplatform.forum.webui.UIPostRules ;
+  import org.exoplatform.forum.webui.UIForumLinks ;
+  import org.exoplatform.forum.webui.UIAttachmentContainer ;
+  import org.exoplatform.forum.webui.UIForumKeepStickPageIterator ;
   
   def rcontext = _ctx.getRequestContext() ;
   JavascriptManager jsmanager = rcontext.getJavascriptManager();
@@ -410,7 +413,6 @@
         if(!ForumUtils.isEmpty(editBy)) {
           editDate = TimeConvertUtils.convertXTimeAgo(post.getModifiedDate(), longDateFormat, setTime);
         }
-        List attachments = post.getAttachments() ;
         String idMessage = "Id" + postId.substring(15);
         String joinDate = "";
         Date joinDate_ = userInfo.getJoinedDate();
@@ -603,53 +605,25 @@
               </div>
             <div class="PostContentContainer">
             <% 
-            boolean hasAttachment = false ;
-            if(attachments != null && attachments.size() > 0) hasAttachment = true;
-            if(isDisplayAvatar && !hasAttachment) { 
+	            boolean hasAttachment = false ;
+								            
+	            UIAttachmentContainer attContainer = uicomponent.getUIAttachmentContainer(postId);
+	            if(isDisplayAvatar && !attContainer.isHasAttachment()) { 
             %>  
               <div class="PostContent">
-            <% } else { %>
+         		<% } else { %>
               <div class="PostContentNote">
             <% } %>
                 <div id="$idMessage">$message</div>
               </div>
-              <% if(hasAttachment) {%>
-              <div class="AttachmentContainer">
-                <h6 class="AttachmentTitle"><%=_ctx.appRes("UITopicDetail.label.Attachments");%>:</h6>
-                <div class="AttachmentContent ClearFix">
-                <% for(attachment in attachments) {
-                     String urlFile = uicomponent.getFileSource(attachment) ;
-                     String titleFile = attachment.getName();
-                     String fileName = ForumUtils.getSubString(titleFile, 30);
-                     long sizeNumber = attachment.getSize() ;
-                     String size = ForumUtils.getSizeFile(sizeNumber) ;
-                     String typeFile = attachment.mimeType ;
-                     String pathAtt = urlFile.replaceAll("&","(omu)");
-                %>
-                    <div class="AttachmentBox">
-                    <% if(typeFile.indexOf("image") >= 0) {
-                       String attLink = uicomponent.getImageUrl(attachment.getPath());
-                    %>
-                      <a class="Image"><img onclick="eXo.forum.UIForumPortlet.showPicture('$attLink');" class="AttachImage" id="imgView${fileName}" src="$attLink" height="100px;" alt="$titleFile"/></a> 
-                      <div class="LabelBox">
-                        <a class="AttachmentIcon JPGIcon" onclick="if(eXo.core.Browser.browserType == 'ie') {<%=uicomponent.event("DownloadAttach");%>; } ajaxRedirect('$urlFile'); return false;" href="javaScript:void(0)" class="AttachmentLabel" title="$titleFile">$fileName</a>
-                        <div class="Size"><%=_ctx.appRes(uiformId + ".label.Size");%>: ${size}</div>
-                        <div class="Action">
-                          <a class="Icon MaxView" onclick="eXo.forum.UIForumPortlet.showPicture('$attLink');"><%=_ctx.appRes(uiformId + ".action.View");%></a>
-                            <a class="Icon Download" onclick="if(eXo.core.Browser.browserType == 'ie') {<%=uicomponent.event("DownloadAttach");%>; } ajaxRedirect('$urlFile'); return false;" href="javaScript: void(0)"><%=_ctx.appRes(uiformId + ".action.Download");%></a>
-                        </div>
-                      </div>
-                  <% }else { 
-                        String typeFileIcon = typeFile.substring((typeFile.indexOf("/")+1));
-                  %>
-                      <a class="AttachmentIcon ${typeFileIcon}Icon" onclick="if(eXo.core.Browser.browserType == 'ie') {<%=uicomponent.event("DownloadAttach");%>; } ajaxRedirect('$urlFile'); return false;" href="javaScript: void(0)">$fileName</a>
-                      <div class="Size"><%=_ctx.appRes(uiformId + ".label.Size");%>: ${size}</div>
-                  <% } %>
-                  </div>
-                <% } %>
-                </div>
-              </div>
-              <% } %>
+              <!-- Attachment -->
+              
+              <%
+								uicomponent.renderChild(attContainer) ;		
+							%>
+              
+              <!-- /Attachment -->
+            
               <%if(userInfo.getIsDisplaySignature() && userInfo.getSignature() != null && userInfo.getSignature().length() > 0) {
                   post.setMessage(userInfo.getSignature());
                   post.setId(uicomponent.SIGNATURE);

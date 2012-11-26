@@ -24,6 +24,7 @@ import javax.jcr.PathNotFoundException;
 
 import org.exoplatform.container.ExoContainerContext;
 import org.exoplatform.download.DownloadService;
+import org.exoplatform.download.InputStreamDownloadResource;
 import org.exoplatform.forum.ForumSessionUtils;
 import org.exoplatform.forum.ForumUtils;
 import org.exoplatform.forum.info.UIForumQuickReplyPortlet;
@@ -110,17 +111,6 @@ public class UIViewPost extends UIForm implements UIPopupComponent {
     return url;
   }
 
-  protected String getFileSource(ForumAttachment attachment) throws Exception {
-    DownloadService dservice = getApplicationComponent(DownloadService.class);
-    try {
-      InputStream input = attachment.getInputStream();
-      String fileName = attachment.getName();
-      return ForumSessionUtils.getFileSource(input, fileName, dservice);
-    } catch (PathNotFoundException e) {
-      return null;
-    }
-  }
-
   public void setPostView(Post post) throws Exception {
     this.post = post;
   }
@@ -146,6 +136,23 @@ public class UIViewPost extends UIForm implements UIPopupComponent {
   static public class DownloadAttachActionListener extends EventListener<UIViewPost> {
     public void execute(Event<UIViewPost> event) throws Exception {
       UIViewPost viewPost = event.getSource();
+      String attId = event.getRequestContext().getRequestParameter(OBJECTID);
+      Post post = viewPost.getPostView();
+      List<ForumAttachment> attachments = post.getAttachments();
+      for (ForumAttachment attachment : attachments) {
+        if(attachment.getId().equals(attId)) {
+          DownloadService dservice = viewPost.getApplicationComponent(DownloadService.class);
+          InputStreamDownloadResource dresource = new InputStreamDownloadResource(attachment.getInputStream(), "application/octet-stream");
+          dresource.setDownloadName(attachment.getName());
+          String downloadLink = dservice.getDownloadLink(dservice.addDownloadResource(dresource));
+          System.out.println(attachment.getMimeType());
+          event.getRequestContext().getJavascriptManager()
+          .addJavascript("window.open('" + downloadLink.replaceAll("&amp;", "&") + 
+                         "', '_self', '', false); setTimeout( function() { eXo.forum.UIForumPortlet.loadImageAgain('" +
+                         viewPost.getId() + "');}, 50);");
+          break;
+        }
+      }
       event.getRequestContext().addUIComponentToUpdateByAjax(viewPost);
     }
   }
