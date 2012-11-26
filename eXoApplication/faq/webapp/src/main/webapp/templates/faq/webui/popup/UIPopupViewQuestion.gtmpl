@@ -1,7 +1,6 @@
 <% 
 	import org.exoplatform.web.application.JavascriptManager;
 	import org.exoplatform.faq.service.Question;
-	import org.exoplatform.faq.webui.ValidatorDataInput;
 	import org.exoplatform.faq.service.FileAttachment;
 	import org.exoplatform.faq.webui.FAQUtils;
 	import org.exoplatform.faq.service.Answer;
@@ -55,43 +54,31 @@
 					<div class="AttachmentContent" class="ClearFix">
 						<div style="margin-top:5px; margin-bottom:5px;">
 							<%
-								for(FileAttachment fileAttachment : question.getAttachMent()){
+								List attachments = question.getAttachMent();
+								for(FileAttachment fileAttachment : attachments) {
 							    String fileName = fileAttachment.getName() ;
 							    long fileSize = fileAttachment.getSize() ;
 							    if(fileSize > 0){
 							    	String size = uicomponent.convertSize(fileSize);
-								    String dataPath = "" ;
-								    String fileStream = "" ;
-								    try{
-								      dataPath = fileAttachment.getDataPath() ;
-								      fileStream = fileAttachment.getInputStream() ;
-								    } catch(Exception e) {
-								    	dataPath = "null" ;
-								      fileStream = "null" ;
-								    }
 								    String fileType = fileAttachment.getMimeType() ;
 								    String fileWorkSpace = fileAttachment.getWorkspace() ;
-								    ValidatorDataInput validate = new ValidatorDataInput() ;
 							    	String linkImage = FAQUtils.getFileSource(fileAttachment) ;
-							    	String typeFileIcon = fileAttachment.getMimeType().substring((fileAttachment.getMimeType().indexOf("/")+1));
-								    if(validate.isImage(fileName)) {
+							    	String typeFileIcon = fileType.substring(fileType.indexOf("/")+1);
+								    if(fileType.indexOf("image") >= 0) {
 								      String attLink = uicomponent.getImageUrl(fileAttachment.getPath());
 							    %>
-							    	<div  style="float:left; margin-left:5px;" id="divId${fileName}">
+							    	<div  style="float:left; margin-left:5px;" id="divId<%=fileAttachment.getNodeName()%>">
 								    	<div class="Image">
 								    		<div onclick="eXo.faq.UIAnswersPortlet.showPicture('$attLink');" style="cursor:pointer">
-													<img id="imgView${fileName}" src="$attLink" width="100" height="100" class="AttachmentFile" alt="$fileName"/>
+													<img id="imgView<%=fileAttachment.getNodeName()%>" src="$attLink" width="100" height="100" class="AttachmentFile" alt="$fileName"/>
 												</div>
 								    	</div>
 					 						<div style="clear:left;"><span></span></div>
 					 						<div class="LabelBox" class="ClearFix">
 						 						<div style="line-height:20px;">
 							 						<div class="Size AttachmentLabel" style="color:#1052b5;">
-							 							<%
-							 								downloadAtt = uicomponent.event("DownloadAttach");
-							 							%>
- 																<a onclick="if(eXo.core.Browser.browserType === 'ie') {<%=uicomponent.event("DownloadAttach");%>; } ajaxRedirect('$linkImage'); return false;" href="javaScript:void(0);">
-							 								$fileName
+ 														<a onclick="<%=uicomponent.event("DownloadAttach");%>" href="javaScript:void(0);">
+							 								<%=FAQUtils.getSubString(fileName, 15);%>
 							 							</a>
 							 						</div>
 							 						&nbsp;- <span style="color:gray;font-size:11px;">$size</span>
@@ -102,8 +89,8 @@
 						    %>
 						    		<div class="LabelBox">
 											<div class="AttachmentIcon FileAttachmentIcon" style="width:auto; height:auto;">
-												<a class="AttachmentLabel" onclick="if(eXo.core.Browser.browserType === 'ie') {<%=uicomponent.event("DownloadAttach");%>; } ajaxRedirect('$linkImage'); return false;" href="javaScript:void(0);">
-													$fileName
+												<a class="AttachmentLabel" onclick="<%=uicomponent.event("DownloadAttach");%>" href="javaScript:void(0);">
+													<%=FAQUtils.getSubString(fileName, 15);%>
 												</a>
 											</div>
 											<div style="clear:left;"><span></span></div>
