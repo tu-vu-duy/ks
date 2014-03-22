@@ -5,6 +5,7 @@ package org.exoplatform.poll.service.ws;
 
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -52,6 +53,7 @@ public class PollWebservice implements ResourceContainer {
   private OrganizationService organizationService = null;
   
   public PollWebservice() {
+    getOrganizationService();
   }
   
   private static final CacheControl         cc;
@@ -92,6 +94,18 @@ public class PollWebservice implements ResourceContainer {
     return null;
   }
 
+  /**
+   * Return information of a poll via the poll's Id.
+   * 
+   * @param pollId The poll Id.
+   * @param sc SecurityContext - used to get userId of current user.
+   * @param uriInfo UriInfo - used to get userId of current user.
+   * @return Response in JSON format.
+   * @throws Exception The exception
+   * 
+   * @anchor KSref.DevelopersReferences.PublicRestAPIs.PollWebservice.viewPoll
+   */
+
   @GET
   @Path("/viewpoll/{resourceid}")
   @Produces(MediaType.APPLICATION_JSON)
@@ -100,8 +114,7 @@ public class PollWebservice implements ResourceContainer {
                            @Context UriInfo uriInfo) throws Exception {
     PollService pollService = (PollService) ExoContainerContext.getCurrentContainer().getComponentInstanceOfType(PollService.class);
     String username = getUserId(sc, uriInfo);
-    if (!Utils.isEmpty(pollId)) {
-      try {
+    if (!Utils.isEmpty(pollId) && !pollId.equals("pollId")) {
         Poll poll = pollService.getPoll(pollId);
         if (poll != null) {
           // poll.setIsAdmin(String.valueOf(hasGroupAdminOfGatein()));
@@ -126,20 +139,27 @@ public class PollWebservice implements ResourceContainer {
             poll.setId("DoNotPermission");
             return Response.ok(poll, MediaType.APPLICATION_JSON).cacheControl(cc).build();
           }
-          poll.setVotes();
-          poll.setInfoVote();
-          poll.setShowVote(isGuestPermission(poll, username));
-          return Response.ok(poll, MediaType.APPLICATION_JSON).cacheControl(cc).build();
+          return baseResponsePoll(poll, username);
         }
-      } catch (Exception e) {
-        log.error("Can not get poll by id: " + pollId, e);
-      }
     }
     PollSummary pollSummary = new PollSummary();
     pollSummary = pollService.getPollSummary(getAllGroupAndMembershipOfUser(username));
     pollSummary.setIsAdmin("true");
     return Response.ok(pollSummary, MediaType.APPLICATION_JSON).cacheControl(cc).build();
   }
+
+  /**
+   * Allow saving the vote information of a user for a poll.
+   * 
+   * @param pollId The poll Id.
+   * @param indexVote Index of the option that is selected by a user.
+   * @param sc SecurityContext - used to get userId of current user.
+   * @param uriInfo UriInfo - used to get userId of current user.
+   * @return Response in JSON format.
+   * @throws Exception The exception
+   * 
+   * @anchor KSref.DevelopersReferences.PublicRestAPIs.PollWebservice.votePoll
+   */
 
   @GET
   @Path("/votepoll/{pollId}/{indexVote}")
@@ -157,11 +177,8 @@ public class PollWebservice implements ResourceContainer {
             validateIndexVote(indexVote, poll.getOption().length)) {
           poll = Utils.calculateVote(poll, username, indexVote);
           pollService.savePoll(poll, false, true);
-          poll.setVotes();
-          poll.setInfoVote();
-          poll.setShowVote(isGuestPermission(poll, username));
           poll.setIsAdmin(String.valueOf(hasGroupAdminOfGatein(username)));
-          return Response.ok(poll, MediaType.APPLICATION_JSON).cacheControl(cc).build();
+          return baseResponsePoll(poll, username);
         }
       } catch (Exception e) {
         log.debug("Failed to vote poll.", e);
@@ -169,6 +186,19 @@ public class PollWebservice implements ResourceContainer {
       return Response.ok("You do not have permission to vote this poll; or some options have been removed from the poll.", MediaType.TEXT_PLAIN).cacheControl(cc).build();
     }
     return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+  }
+
+  private Response baseResponsePoll(Poll poll, String username) throws Exception {
+    poll.setInfoVote();
+    poll.setShowVote(isGuestPermission(poll, username));
+    poll.setUserVote(new String[]{});
+    String prentPath = poll.getParentPath();
+    if(prentPath != null && prentPath.indexOf("ForumData/CategoryHome") > 0) {
+      poll.setParentPath("/ForumData/CategoryHome");
+    } else {
+      poll.setParentPath("");
+    }
+    return Response.ok(poll, MediaType.APPLICATION_JSON).cacheControl(cc).build();
   }
 
   private boolean validateIndexVote(String indexVote, int max) {
@@ -221,17 +251,16 @@ public class PollWebservice implements ResourceContainer {
     return false;
   }
 
+  @SuppressWarnings("unchecked")
   private List<String> getAllGroupAndMembershipOfUser(String username) {
     List<String> listOfUser = new ArrayList<String>();
     try {
-      listOfUser.add(username);
+      listOfUser.add(username);// himself
       Set<String> list = new HashSet<String>();
-      list.addAll(getGroupsOfUser(username));
-      for (Object membership : getOrganizationService().getMembershipHandler().findMembershipsByUser(username)) {
-        String value = ((Membership) membership).getGroupId();
-        list.add(value); // its groups
-        value = ((Membership) membership).getMembershipType() + ":" + value;
-        list.add(value);
+      Collection<Membership> memberships = organizationService.getMembershipHandler().findMembershipsByUser(username);
+      for (Membership membership : memberships) {
+        listOfUser.add(membership.getGroupId()); // its groups
+        listOfUser.add(membership.getMembershipType() + ":" + membership.getGroupId()); // its memberships
       }
       listOfUser.addAll(list);
     } catch (Exception e) {

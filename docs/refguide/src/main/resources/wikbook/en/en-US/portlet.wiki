@@ -1,0 +1,45 @@
+{docbook}
+<highlights>
+     <itemizedlist>
+      <listitem>
+        <para>
+          <emphasis role="bold">
+            <link linkend="KSref.Applications.Forum Portlet">Forum Portlet</link>
+          </emphasis> </para>
+          <para>Details (including package, portlet.xml, preferences and events) of the Forum application which allows posting and reading messages on different topics. </para>
+      </listitem>
+      <listitem>
+        <para>
+          <emphasis role="bold">
+            <link linkend="KSref.Applications.Answers Portlet">Answers Portlet</link>
+          </emphasis> </para>
+          <para>Details (including package, portlet.xml, preferences) of the Answers application that allows creating answers, replying and managing questions.</para>
+      </listitem>
+      <listitem>
+        <para>
+          <emphasis role="bold">
+            <link linkend="KSref.Applications.FAQ Portlet">FAQ Portlet</link>
+          </emphasis> </para>
+          <para>Details (including package, portlet.xml, preferences) of the FAQ application which allows showing questions and answers.</para>
+      </listitem>
+      <listitem>
+        <para>
+          <emphasis role="bold">
+            <link linkend="KSref.Applications.Polls Portlet">Polls Portlet</link>
+          </emphasis> </para>
+          <para>Details (including package, portlet.xml, preferences) of the Poll application which allows voting any ideas, or activities.</para>
+      </listitem>
+    </itemizedlist>
+    <para></para>
+	</highlights>
+{docbook}
+
+{docbook}
+<para>
+<prompt>
+    <emphasis role="bold">See also</emphasis>
+</prompt>
+</para>
+{docbook}
+
+* [Gadgets|#KSref.Applications.Gadgets]

@@ -21,6 +21,7 @@ import java.util.Map;
 
 import javax.inject.Inject;
 
+import org.apache.commons.lang.StringUtils;
 import org.exoplatform.container.ExoContainerContext;
 import org.exoplatform.container.PortalContainer;
 import org.exoplatform.services.jcr.datamodel.IllegalNameException;
@@ -30,10 +31,12 @@ import org.exoplatform.wiki.mow.api.Page;
 import org.exoplatform.wiki.mow.api.Wiki;
 import org.exoplatform.wiki.mow.core.api.wiki.AttachmentImpl;
 import org.exoplatform.wiki.mow.core.api.wiki.PageImpl;
+import org.exoplatform.wiki.rendering.cache.PageRenderingCacheService;
 import org.exoplatform.wiki.rendering.context.MarkupContextManager;
 import org.exoplatform.wiki.resolver.TitleResolver;
 import org.exoplatform.wiki.service.MetaDataPage;
 import org.exoplatform.wiki.service.WikiContext;
+import org.exoplatform.wiki.service.WikiPageParams;
 import org.exoplatform.wiki.service.WikiService;
 import org.exoplatform.wiki.utils.Utils;
 import org.exoplatform.wiki.utils.WikiNameValidator;
@@ -67,11 +70,7 @@ public class DefaultWikiModel implements WikiModel {
   
   @Override
   public String getDocumentEditURL(ResourceReference documentReference) {
-    ExecutionContext ec = execution.getContext();
-    WikiContext wikiContext = null;
-    if (ec != null) {
-      wikiContext = (WikiContext) ec.getProperty(WikiContext.WIKICONTEXT);
-    }
+    WikiContext wikiContext = getWikiContext();
     WikiContext wikiMarkupContext = markupContextManager.getMarkupContext(documentReference.getReference(),ResourceType.DOCUMENT);
     if (wikiContext != null) {
       StringBuilder sb = new StringBuilder();
@@ -106,8 +105,8 @@ public class DefaultWikiModel implements WikiModel {
   }
 
   @Override
-  public String getDocumentViewURL(ResourceReference documentReference) {
-    WikiContext wikiMarkupContext = markupContextManager.getMarkupContext(documentReference.getReference(),ResourceType.DOCUMENT);
+  public String getDocumentViewURL(ResourceReference documentReference) {    
+    WikiContext wikiMarkupContext = markupContextManager.getMarkupContext(documentReference.getReference(), ResourceType.DOCUMENT);   
     return getDocumentViewURL(wikiMarkupContext);
   }
 
@@ -116,11 +115,24 @@ public class DefaultWikiModel implements WikiModel {
     String imageName = imageReference.getReference();
     StringBuilder sb = new StringBuilder();
     try {
+
+      PageRenderingCacheService renderingCacheService = (PageRenderingCacheService) ExoContainerContext.getCurrentContainer()
+                                                                                                       .getComponentInstanceOfType(PageRenderingCacheService.class);
       ResourceType resourceType = ResourceType.ICON.equals(imageReference.getType()) ? ResourceType.ICON : ResourceType.ATTACHMENT;
       WikiContext wikiMarkupContext = markupContextManager.getMarkupContext(imageName, resourceType);
       String portalContainerName = PortalContainer.getCurrentPortalContainerName();
       String portalURL = wikiMarkupContext.getPortalURL();
-      String domainURL = portalURL.substring(0, portalURL.indexOf(portalContainerName) - 1);
+      String domainURL = portalURL.substring(0, portalURL.indexOf("/"+portalContainerName));
+      WikiContext context =getWikiContext();
+      renderingCacheService.addPageLink(new WikiPageParams(context.getType(), context.getOwner(), context.getPageId()),
+                                        new WikiPageParams(wikiMarkupContext.getType(),
+                                                           wikiMarkupContext.getOwner(),
+                                                           wikiMarkupContext.getPageId()));
+      renderingCacheService.addPageLink(new WikiPageParams(context.getType(), context.getOwner(), context.getPageId()),
+                                        new WikiPageParams(wikiMarkupContext.getType(),
+                                                           wikiMarkupContext.getOwner(),
+                                                           wikiMarkupContext.getPageId(),
+                                                           wikiMarkupContext.getAttachmentName()));   
       sb.append(domainURL).append(Utils.getCurrentRepositoryWebDavUri());
       PageImpl page = null;
       WikiService wikiService = (WikiService) ExoContainerContext.getCurrentContainer().getComponentInstanceOfType(WikiService.class);
@@ -129,6 +141,7 @@ public class DefaultWikiModel implements WikiModel {
       } else {
         page = (PageImpl) wikiService.getMetaDataPage(MetaDataPage.EMOTION_ICONS_PAGE);
       }
+      
       if (page != null) {
         sb.append(page.getWorkspace());
         sb.append(page.getPath());
@@ -137,6 +150,9 @@ public class DefaultWikiModel implements WikiModel {
         if (att != null) {
           sb.append(URLEncoder.encode(att.getName(), "UTF-8"));
         }
+      } else {
+        // If can not find the resource then return url empty
+        return StringUtils.EMPTY;
       }
     } catch (Exception e) {
       if (LOG.isDebugEnabled()) {
@@ -155,13 +171,26 @@ public class DefaultWikiModel implements WikiModel {
   public boolean isDocumentAvailable(ResourceReference documentReference) {
     // Should look for pages in the model with the given title
     // (Page.findPageByTitle())
+    
+    WikiService wikiService = (WikiService) ExoContainerContext.getCurrentContainer()
+    .getComponentInstanceOfType(WikiService.class);
+    PageRenderingCacheService renderingCacheService = (PageRenderingCacheService) ExoContainerContext.getCurrentContainer()
+                                          .getComponentInstanceOfType(PageRenderingCacheService.class);
+    
     Page page = null;
     String documentName = documentReference.getReference();
     ResourceType type = documentReference.getType();
     WikiContext wikiMarkupContext = markupContextManager.getMarkupContext(documentName, type);
+    WikiContext wikiContext = getWikiContext();
     try {
-      WikiService wikiService = (WikiService) ExoContainerContext.getCurrentContainer()
-                                                                 .getComponentInstanceOfType(WikiService.class);
+      renderingCacheService.addPageLink(new WikiPageParams(wikiContext.getType(), wikiContext.getOwner(), wikiContext.getPageId()),
+                                        new WikiPageParams(wikiMarkupContext.getType(),
+                                                           wikiMarkupContext.getOwner(),
+                                                           wikiMarkupContext.getPageId()));
+    } catch (Exception e) {
+      LOG.warn(String.format("Failed to link incoming pages for page %s", documentReference.toString()), e);
+    }
+    try {
       if (!Utils.isWikiAvailable(wikiMarkupContext.getType(), wikiMarkupContext.getOwner())) {
         return false;
       } else {
@@ -170,6 +199,12 @@ public class DefaultWikiModel implements WikiModel {
                                        wikiMarkupContext.getPageId());
         if (page == null) {
           page = wikiService.getRelatedPage(wikiMarkupContext.getType(), wikiMarkupContext.getOwner(), wikiMarkupContext.getPageId());
+          if (page!=null) {
+            renderingCacheService.addPageLink(new WikiPageParams(wikiContext.getType(), wikiContext.getOwner(), wikiContext.getPageId()),
+                                              new WikiPageParams(wikiMarkupContext.getType(),
+                                                                 wikiMarkupContext.getOwner(),
+                                                                 page.getName()));
+          }
           return page != null;
         } 
       }
@@ -205,4 +240,12 @@ public class DefaultWikiModel implements WikiModel {
     return Utils.getDocumentURL(context);
   }
   
+  private WikiContext getWikiContext() {
+    ExecutionContext ec = execution.getContext();
+    if (ec != null) {
+      WikiContext wikiContext = (WikiContext) ec.getProperty(WikiContext.WIKICONTEXT);
+      return wikiContext;
+    }
+    return null;
+  }
 }

@@ -22,9 +22,6 @@ import java.util.Locale;
 import java.util.StringTokenizer;
 
 import org.exoplatform.commons.utils.PageList;
-import org.exoplatform.portal.application.PortalRequestContext;
-import org.exoplatform.portal.config.model.PortalConfig;
-import org.exoplatform.portal.webui.portal.UIPortal;
 import org.exoplatform.portal.webui.util.Util;
 import org.exoplatform.webui.config.annotation.ComponentConfig;
 import org.exoplatform.webui.core.UIContainer;
@@ -35,7 +32,6 @@ import org.exoplatform.wiki.mow.core.api.wiki.AttachmentImpl;
 import org.exoplatform.wiki.mow.core.api.wiki.PageImpl;
 import org.exoplatform.wiki.mow.core.api.wiki.RenamedMixin;
 import org.exoplatform.wiki.service.search.SearchResult;
-import org.exoplatform.wiki.utils.Utils;
 import org.exoplatform.wiki.webui.core.UIAdvancePageIterator;
 
 /**
@@ -46,32 +42,25 @@ import org.exoplatform.wiki.webui.core.UIAdvancePageIterator;
  */
 @ComponentConfig(lifecycle = Lifecycle.class, template = "app:/templates/wiki/webui/UIWikiAdvanceSearchResult.gtmpl")
 public class UIWikiAdvanceSearchResult extends UIContainer {
-
-  private String keyword;
+  
+  private PageList<SearchResult> results;
 
   public UIWikiAdvanceSearchResult() throws Exception {
     addChild(UIAdvancePageIterator.class, null, "SearchResultPageIterator");
   }
 
-  public void setResult(PageList<SearchResult> results) throws Exception {
-    UIAdvancePageIterator pageIterator = this.getChild(UIAdvancePageIterator.class);
-    pageIterator.setPageList(results);
-    if(pageIterator.getPageList() != null){
-      pageIterator.getPageList().getPage(1);
-    }
-  }
-
   public PageList<SearchResult> getResults() {
-    UIAdvancePageIterator pageIterator = this.getChild(UIAdvancePageIterator.class);
-    return pageIterator.getPageList();
+    return results;
   }
 
-  public void setKeyword(String keyword) {
-    this.keyword = keyword;
+  public void setResults(PageList<SearchResult> results) {
+    this.results = results;
   }
-
-  protected String getKeyword() {
-    return keyword;
+  
+  public String getKeyword() {
+    UIWikiPortlet wikiPortlet = getAncestorOfType(UIWikiPortlet.class);
+    UIWikiAdvanceSearchForm advanceSearchForm = wikiPortlet.findFirstComponentOfType(UIWikiAdvanceSearchForm.class);
+    return advanceSearchForm.getKeyword();
   }
 
   protected String getDateFormat(Calendar cal) throws Exception {
@@ -100,6 +89,9 @@ public class UIWikiAdvanceSearchResult extends UIContainer {
   }
 
   protected String getOldPageTitleInSearchResult(PageImpl page, String pageTitle) throws Exception {
+    UIWikiPortlet wikiPortlet = getAncestorOfType(UIWikiPortlet.class);
+    UIWikiAdvanceSearchForm advanceSearchForm = wikiPortlet.findFirstComponentOfType(UIWikiAdvanceSearchForm.class);
+    String keyword = advanceSearchForm.getKeyword();
     if (pageTitle.indexOf(keyword) >= 0) {
       return "";
     }
@@ -113,22 +105,6 @@ public class UIWikiAdvanceSearchResult extends UIContainer {
     }
     return "";
   }
-
-  protected String getWikiNodeUri(Wiki wiki) throws Exception {
-    String wikiType = wiki.getType();
-    PortalRequestContext portalRequestContext = Util.getPortalRequestContext();
-    StringBuilder sb = new StringBuilder(portalRequestContext.getPortalURI());
-    UIPortal uiPortal = Util.getUIPortal();
-    String pageNodeSelected = uiPortal.getSelectedUserNode().getURI();
-    sb.append(pageNodeSelected);
-    if (!PortalConfig.PORTAL_TYPE.equalsIgnoreCase(wikiType)) {
-      sb.append("/");
-      sb.append(wikiType);
-      sb.append("/");
-      sb.append(Utils.validateWikiOwner(wikiType, wiki.getOwner()));
-    }
-    return sb.toString();
-  }
   
   protected static String replaceUnderscorebySpace(String s) {
     StringTokenizer st = new StringTokenizer(s, "_", false);
@@ -140,6 +116,5 @@ public class UIWikiAdvanceSearchResult extends UIContainer {
       sb.append(" ").append(st.nextElement());
     return sb.toString();
   }
-  
 }
 

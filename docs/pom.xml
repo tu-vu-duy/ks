@@ -5,19 +5,12 @@
     <parent>
     <groupId>org.exoplatform.ks</groupId>
     <artifactId>ks</artifactId>
-    <version>2.2.9-SNAPSHOT</version>
+    <version>2.2.16-SNAPSHOT</version>
   </parent>
   <artifactId>exo.ks.docs</artifactId>
   <packaging>pom</packaging>
 
-  <name>KS documentation</name>
-
-  <properties>
-    <wikbook.source>${project.build.directory}/wikbook-src</wikbook.source>
-    <wikbook.resources>${project.basedir}/src/main/resources</wikbook.resources>
-    <wikbook.target>${project.build.directory}/wikbook</wikbook.target>
-    <wikbook.version>0.9.26</wikbook.version>
-  </properties>
+  <name>Knowledge Documentation</name>
   
   <modules>
     <module>refguide</module>

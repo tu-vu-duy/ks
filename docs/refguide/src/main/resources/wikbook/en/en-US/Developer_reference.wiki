@@ -1,12 +1,73 @@
-This chapter supplies you with the basic knowledge about overridden components, internal APIs implemented in eXo Knowledge. Also,
-you will know how to set up a default template for the FAQ portlet, and how to create a sample action extension in Wiki.
-
-In this chapter, there are the following main topics:
-
-* [Extension points|#KSref.DeveloperReference.ExtensionPoints]
-
-* [Internal API|#KSref.DeveloperReference.InternalAPI]
-
-* [FAQ Template Configuration|#KSref.DeveloperReference.FAQTemplateConfiguration]
-
-* [Extend actions over a wiki page from external jars|#KSref.DeveloperReference.Extend_actions_over_a_wiki_page_from_external_jars]
+{docbook}
+<abstract>
+ <para>This chapter provides you with the basic knowledge of overridden components, internal APIs implemented in Knowledge. Also,
+you will know how to set up a default template for the FAQ portlet, and how to create a sample action extension in Wiki.</para>
+<para>In this chapter, there are the following main topics:</para>
+    <itemizedlist>
+      <listitem>
+        <para>
+          <emphasis role="bold">
+            <link linkend="KSref.DeveloperReference.ExtensionPoints">Extension points</link>
+          </emphasis> </para>
+          <para>Details of configuration plug-in and tutorial of ForumEventLifeCycle, AnswerEventLifeCycle and BBCodeRenderer.</para>
+      </listitem>
+      <listitem>
+        <para>
+          <emphasis role="bold">
+            <link linkend="KSref.DeveloperReference.InternalAPI">Internal API</link>
+          </emphasis> </para>
+          <para>Description of REST Services of internal APIs which the Knowledge applications (Forum, Answers and Polls) use to communicate with the server.</para>
+      </listitem>
+      <listitem>
+        <para>
+          <emphasis role="bold">
+            <link linkend="KSref.DeveloperReference.WikiService">Wiki Service API</link>
+          </emphasis> </para>
+          <para>Description of Wiki Service API used in the Knowledge function.</para>
+      </listitem>
+      <listitem>
+        <para>
+          <emphasis role="bold">
+            <link linkend="KSref.DeveloperReference.FAQTemplateConfiguration">FAQ Template Configuration</link>
+          </emphasis> </para>
+          <para>Instructions on how to configure the FQA template and to change its look and feel, information of APIs provided by the UIComponent. </para>
+      </listitem>
+      <listitem>
+        <para>
+          <emphasis role="bold">
+            <link linkend="KSref.DeveloperReference.Extend_actions_over_a_wiki_page_from_external_jars">Actions over a wiki page from external jars</link>
+          </emphasis> </para>
+          <para>Instructions on how to extend your own actions packaged in external jars to the Wiki toolbar via the following particular topics:</para>
+		  <itemizedlist>
+			 <listitem>
+				<para>
+				Create a new project for action extension
+				</para>
+			 </listitem>
+			 <listitem>
+				<para>
+				Create new actions and their corresponding listeners
+				</para>
+			 </listitem>
+			 <listitem>
+				<para>
+				Register new actions with UIExtensionManager
+				</para>
+			 </listitem>
+			 <listitem>
+				<para>
+				Deploy new action extension
+				</para>
+			 </listitem>
+		  </itemizedlist>
+      </listitem>
+       <listitem>
+        <para>
+          <emphasis role="bold">
+            <link linkend="KSref.JCRStructure">JCR structure</link>
+          </emphasis> </para>
+          <para>Description of the JCR structure of the main Knowledge applications, including Forum, FAQ, Poll and Wiki. </para>
+      </listitem>
+    </itemizedlist>
+	</abstract>
+{docbook}

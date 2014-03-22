@@ -29,6 +29,7 @@ import org.exoplatform.services.log.ExoLogger;
 import org.exoplatform.services.log.Log;
 import org.exoplatform.wiki.mow.core.api.wiki.PageImpl;
 import org.exoplatform.wiki.rendering.builder.ReferenceBuilder;
+import org.exoplatform.wiki.rendering.cache.PageRenderingCacheService;
 import org.exoplatform.wiki.rendering.context.MarkupContextManager;
 import org.exoplatform.wiki.rendering.macro.ExcerptUtils;
 import org.exoplatform.wiki.service.WikiContext;
@@ -115,9 +116,27 @@ public class ChildrenMacro extends AbstractMacro<ChildrenMacroParameters> {
         params = wikiContext;
       }
     }
+    
     Block root;
     try {
+      WikiService wikiService = (WikiService) ExoContainerContext.getCurrentContainer().getComponentInstanceOfType(WikiService.class);
+      
+      // Check if root page exist
+      PageImpl wikiPage = (PageImpl) wikiService.getPageById(params.getType(), params.getOwner(), params.getPageId());
+      if (wikiPage == null) {
+        // if root page was renamed then find it
+        wikiPage = (PageImpl) wikiService.getRelatedPage(params.getType(), params.getOwner(), params.getPageId());
+        if (wikiPage != null) {
+          params = new WikiPageParams(wikiPage.getWiki().getType(), wikiPage.getWiki().getOwner(), wikiPage.getName());
+        }
+      }
+      
       root = generateTree(params, descendant, childrenNum, depth, context);
+      PageRenderingCacheService renderingCacheService = (PageRenderingCacheService) ExoContainerContext.getCurrentContainer()
+          .getComponentInstanceOfType(PageRenderingCacheService.class);
+      WikiContext wikiContext = getWikiContext();
+      renderingCacheService.addPageLink(new WikiPageParams(wikiContext.getType(), wikiContext.getOwner(), wikiContext.getPageId()), 
+          new WikiPageParams(params.getType(), params.getOwner(), params.getPageId()));
       return Collections.singletonList(root);
     } catch (Exception e) {
       log.debug("Failed to ", e);
@@ -134,7 +153,7 @@ public class ChildrenMacro extends AbstractMacro<ChildrenMacroParameters> {
     treeContext.put(TreeNode.SHOW_DESCENDANT, descendant);
     treeContext.put(TreeNode.CHILDREN_NUMBER, childrenNum);
     treeContext.put(TreeNode.DEPTH, depth);
-    TreeNode node = TreeUtils.getDescendants(params, treeContext);
+    TreeNode node = TreeUtils.getDescendants(params, treeContext);    
     addBlock(block, node,context);
     return block;
   }
@@ -182,10 +201,19 @@ public class ChildrenMacro extends AbstractMacro<ChildrenMacroParameters> {
 
   private ReferenceBuilder getReferenceBuilder(MacroTransformationContext context) throws MacroExecutionException {
     try {
-      return componentManager.lookup(ReferenceBuilder.class, context.getSyntax().toIdString());
+      return componentManager.getInstance(ReferenceBuilder.class, context.getSyntax().toIdString());
     } catch (ComponentLookupException e) {
       throw new MacroExecutionException(String.format("Failed to find reference builder for syntax %s", context.getSyntax()
                                                                                                                .toIdString()), e);
     }
+  }
+  
+  private WikiContext getWikiContext() {
+    ExecutionContext ec = execution.getContext();
+    WikiContext wikiContext = null;
+    if (ec != null) {
+      wikiContext = (WikiContext) ec.getProperty(WikiContext.WIKICONTEXT);
+    }
+    return wikiContext;
   }
 }

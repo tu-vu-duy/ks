@@ -244,14 +244,7 @@ public class UIBreadcumbs extends UIContainer {
   }
 
   protected List<String> getBreadcumbs() throws Exception {
-    return breadcumbs_;
-  }
-
-  private boolean isArrayNotNull(String[] strs) {
-    if (strs != null && strs.length > 0 && !strs[0].equals(" "))
-      return true;// private
-    else
-      return false;
+    return new ArrayList<String>(breadcumbs_);
   }
 
   protected String getType(String id) {
@@ -263,59 +256,53 @@ public class UIBreadcumbs extends UIContainer {
   }
 
   protected boolean checkLinkPrivate(String id) throws Exception {
-    boolean isPrivate = false;
     if (id.indexOf(Utils.TOPIC) >= 0) {
       try {
         Topic topic = (Topic) this.forumService.getObjectNameById(id, Utils.TOPIC);
         if (topic != null) {
-          if (topic.getIsClosed() || !topic.getIsActiveByForum() || !topic.getIsActive() || topic.getIsWaiting() || (isArrayNotNull(topic.getCanView()))) {
-            isPrivate = true;
-          }
-          if (!isPrivate) {
-            String path = topic.getPath();
-            id = path.substring(path.lastIndexOf(Utils.FORUM), path.indexOf(Utils.TOPIC) - 1);
-            Forum forum = (Forum) this.forumService.getObjectNameById(id, Utils.FORUM);
-            if (forum.getIsClosed())
-              isPrivate = true;
-            if (!isPrivate) {
-              id = path.substring(path.indexOf(Utils.CATEGORY), path.lastIndexOf(Utils.FORUM) - 1);
-              Category cate = (Category) this.forumService.getObjectNameById(id, Utils.CATEGORY);
-              if (isArrayNotNull(cate.getUserPrivate())) {
-                isPrivate = true;
-              }
-            }
+          if (topic.getIsClosed() || !topic.getIsActiveByForum() || !topic.getIsActive() || topic.getIsWaiting()
+              || !(Utils.isEmpty(topic.getCanView()))) {
+            return true;
+          } else {
+            return isForumPrivate(topic.getPath(), true);
           }
         }
       } catch (Exception e) {
-        log.error("\nThe " + id + " must exist: " + e.getMessage(), e);
+        log.warn("\nThe " + id + " must exist");
       }
     } else if (id.indexOf(Utils.CATEGORY) == 0) {
-      try {
-        Category cate = (Category) this.forumService.getObjectNameById(id, Utils.CATEGORY);
-        if (isArrayNotNull(cate.getUserPrivate())) {
-          isPrivate = true;
-        }
-      } catch (Exception e) {
-        log.error("\nThe " + id + " must exist: " + e.getMessage(), e);
-      }
+      return isCategoryPrivate(id, false);
     } else if (id.indexOf(Utils.FORUM) == 0) {
-      try {
-        Forum forum = (Forum) this.forumService.getObjectNameById(id, Utils.FORUM);
-        if (forum.getIsClosed())
-          isPrivate = true;
-        if (!isPrivate) {
-          String path = forum.getPath();
-          path = path.substring(path.indexOf(Utils.CATEGORY), path.lastIndexOf(Utils.FORUM) - 1);
-          Category cate = (Category) this.forumService.getObjectNameById(path, Utils.CATEGORY);
-          if (isArrayNotNull(cate.getUserPrivate())) {
-            isPrivate = true;
-          }
-        }
-      } catch (Exception e) {
-        log.error("\nThe " + id + " must exist: " + e.getMessage(), e);
+      return isForumPrivate(id, false);
+    }
+    return false;
+  }
+
+  private boolean isCategoryPrivate(String id, boolean isForTopic) throws Exception {
+    Category cate = (Category) this.forumService.getCategory(id);
+    if(cate != null) {
+      return !Utils.isEmpty(cate.getUserPrivate()) || (isForTopic && !Utils.isEmpty(cate.getViewer()));
+    } else {
+      return true;
+    }
+  }
+  
+  private boolean isForumPrivate(String id, boolean isForTopic) throws Exception {
+    Forum forum = null;
+    if (id.indexOf("/") >= 0) {
+      String[] arr = id.split("/");
+      forum = forumService.getForum(arr[arr.length - 3], arr[arr.length - 2]);
+    } else {
+      forum = (Forum) this.forumService.getObjectNameById(id, Utils.FORUM);
+    }
+    if (forum != null) {
+      if (forum.getIsClosed() || (isForTopic && !Utils.isEmpty(forum.getViewer()))) {
+        return true;
+      } else {
+        return isCategoryPrivate(forum.getCategoryId(), isForTopic);
       }
     }
-    return isPrivate;
+    return true;
   }
 
   static public class ChangePathActionListener extends EventListener<UIBreadcumbs> {

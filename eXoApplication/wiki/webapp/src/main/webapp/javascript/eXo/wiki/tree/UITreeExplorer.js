@@ -7,19 +7,20 @@ if(eXo.wiki.UITreeExplorer ==  null) {
 
 function UITreeExplorer() {};
 
-UITreeExplorer.prototype.init = function( componentid, initParam , isFullRender ) {
-  
+UITreeExplorer.prototype.init = function( componentid, initParam, isFullRender, isRenderLink, baseLink ) {
   var me = eXo.wiki.UITreeExplorer;
   var component = document.getElementById(componentid);
   if (component == null) {
     var editForm = document.getElementById('UIWikiPageEditForm');
-    var ifm = eXo.core.DOMUtil.findFirstDescendantByClass(editForm,
-        'iframe', 'gwt-RichTextArea');
+    var ifm = eXo.core.DOMUtil.findFirstDescendantByClass(editForm, 'iframe', 'gwt-RichTextArea');
     // Store current iframe element
     me.innerDoc = ifm.contentDocument || ifm.contentWindow.document;
 
     component = me.innerDoc.getElementById(componentid);
   }
+  
+  this.isRenderLink = isRenderLink;
+  this.baseLink = baseLink;
   var initURL = eXo.core.DOMUtil.findFirstDescendantByClass(component, "input", "InitURL");
   var initNode = eXo.core.DOMUtil.findFirstDescendantByClass(component, "div", "NodeGroup");
   initParam = me.cleanParam(initParam);
@@ -98,12 +99,23 @@ UITreeExplorer.prototype.render = function(param, element, isFullRender) {
   var http = eXo.wiki.UITreeExplorer.getHTTPObject();  
   var restURL = url + param;
 
-  http.open("GET", restURL, true);
+  http.open("GET", restURL, true); 
+  
+  var childBlock = document.createElement("div");
+  if (me.innerDoc) {
+    childBlock = me.innerDoc.createElement("div");
+    me.innerDoc = null;
+  }
+  childBlock.className = "NodeGroup";
+  childBlock.innerHTML = me.loading;
+  node.appendChild(childBlock);
+  
   http.onreadystatechange = function() {
     if (http.readyState == 4) {
-      me.renderTreeNodes(node, http.responseText);      
+      me.renderTreeNodes(childBlock, http.responseText);      
     }
   }
+  
   http.send("");
   element.className = "CollapseIcon";
 };
@@ -123,23 +135,16 @@ UITreeExplorer.prototype.getHTTPObject = function() {
   return false;
 };
 
-UITreeExplorer.prototype.renderTreeNodes = function(parentNode, responseText) {
+UITreeExplorer.prototype.renderTreeNodes = function(node, responseText) {
   var me = eXo.wiki.UITreeExplorer;
   var dataList = JSON.parse(responseText);
   var resultLength = dataList.jsonList.length;
 
-  var childBlock = document.createElement("div");
-  if (me.innerDoc) {
-    childBlock = me.innerDoc.createElement("div");
-    me.innerDoc = null;
-  }
-  childBlock.className = "NodeGroup";
   var str = "";
   for ( var i = 0; i < resultLength; i++) {
     str += me.buildNode(dataList.jsonList[i]);
   }
-  childBlock.innerHTML = str;
-  parentNode.appendChild(childBlock);
+  node.innerHTML = str;
 }
 
 UITreeExplorer.prototype.buildHierachyNode = function(data){
@@ -184,11 +189,22 @@ UITreeExplorer.prototype.buildNode = function(data) {
   var childNode = "";
   childNode += " <div  class=\"" + lastNodeClass + " Node\" >";
   childNode += "   <div class=\""+iconType+"Icon\" id=\"" + path + "\" onclick=\"event.cancelBubble=true;  if(eXo.wiki.UITreeExplorer.collapseExpand(this)) return;  eXo.wiki.UITreeExplorer.render('"+ param + "', this)\">";
-  childNode += "    <div id=\"iconTreeExplorer\"  onclick=\"event.cancelBubble=true; eXo.wiki.UITreeExplorer.onNodeClick(this,'"+path+"', false " + ")\""  + "class=\""+ nodeTypeCSS +" TreeNodeType Node "+ hoverClass +" \">";  
+  if (me.isRenderLink) {
+    childNode += "    <div id=\"iconTreeExplorer\" class=\""+ nodeTypeCSS +" TreeNodeType Node "+ hoverClass +" \">";
+  } else {
+    childNode += "    <div id=\"iconTreeExplorer\"  onclick=\"event.cancelBubble=true; eXo.wiki.UITreeExplorer.onNodeClick(this,'"+path+"', false " + ")\""  + "class=\""+ nodeTypeCSS +" TreeNodeType Node "+ hoverClass +" \">";
+  }
   childNode += "      <div class='NodeLabel'>";
   
-  if (data.selectable == true){
-    childNode += "        <a title=\""+nodeName+"\">"+nodeName+"</a>";
+  if (data.selectable == true) {
+    if (me.isRenderLink) {
+      var index = path.lastIndexOf("%2F"); // Find the index of character "/"
+      var pageId = path.substring(index + 3);
+      var link = me.baseLink + pageId;
+      childNode += "        <a title=\"" + nodeName + "\" href=\"" + link + "\">" + nodeName + "</a>";
+    } else {
+      childNode += "        <a title=\"" + nodeName + "\">" + nodeName + "</a>";
+    }
   }
   else{
     childNode += "         <span style=\"cursor:auto\" title=\""+nodeName+"\">"+nodeName+"</span>";

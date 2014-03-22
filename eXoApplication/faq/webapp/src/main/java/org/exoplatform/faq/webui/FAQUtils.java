@@ -24,6 +24,7 @@ import java.nio.channels.FileChannel;
 import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -40,6 +41,9 @@ import org.exoplatform.container.ExoContainerContext;
 import org.exoplatform.container.PortalContainer;
 import org.exoplatform.download.DownloadService;
 import org.exoplatform.download.InputStreamDownloadResource;
+import org.exoplatform.faq.service.Answer;
+import org.exoplatform.faq.service.Cate;
+import org.exoplatform.faq.service.Category;
 import org.exoplatform.faq.service.FAQService;
 import org.exoplatform.faq.service.FAQSetting;
 import org.exoplatform.faq.service.FileAttachment;
@@ -352,9 +356,12 @@ public class FAQUtils {
   public static void saveFAQPortletPreference(List<String> list, boolean useAjax) throws Exception {
     PortletRequestContext pcontext = (PortletRequestContext) WebuiRequestContext.getCurrentInstance();
     PortletPreferences portletPref = pcontext.getRequest().getPreferences();
-    String str = list.toString();
-    str = str.replace("[", "").replace("]", "").replaceAll(" ", "");
-    portletPref.setValue("displayCategories", str);
+    if(list.size() > 0){
+    	 String str = list.toString();
+       str = str.replace("[", "").replace("]", "").replaceAll(" ", "");
+       portletPref.setValue("displayCategories", str);
+    }
+   
     portletPref.setValue("useAjax", String.valueOf(useAjax));
     portletPref.store();
   }
@@ -524,7 +531,40 @@ public class FAQUtils {
     }
     return "";
   }
+  
+  
+  /**
+   * Get all sub category from rootCategoryId and return all in one List<Cate>
+   * @param rootCategoryId root of Tree
+   * @param faqSetting 
+   * @param limitedUsers limit Cate by user
+   * @param limitDeep max deep of tree
+   * @return
+   * @throws Exception
+   */  
+  public static List<Cate> listingCategoryTree(String rootCategoryId, FAQSetting faqSetting, List<String> limitedUsers, final int limitDeep) throws Exception {
+    if(rootCategoryId == null){
+      rootCategoryId = Utils.CATEGORY_HOME;
+    }
+    return listingCategoryTree(rootCategoryId, faqSetting, limitedUsers, limitDeep, 0);
+  }
+  
+  private static List<Cate> listingCategoryTree(String rootCategoryId, FAQSetting faqSetting, List<String> limitedUsers, final int limitDeep, int currentDeep) throws Exception {
+    List<Cate> result = new ArrayList<Cate>();
+    if(currentDeep <= limitDeep){
+      List<Category> categories = getFAQService().getSubCategories(rootCategoryId, faqSetting, false, limitedUsers);
+      for (Category category : categories) {
+        Cate cate = new Cate();
+        cate.setCategory(category);
+        cate.setDeft(currentDeep);
+        result.add(cate);
 
+        result.addAll(listingCategoryTree(rootCategoryId + "/" + category.getId(), faqSetting, limitedUsers, limitDeep, currentDeep + 1));
+      }
+    }
+    return result;
+  }
+  
   public static int getLimitUploadSize(boolean isAvatar) {
     PortletRequestContext pcontext = (PortletRequestContext) WebuiRequestContext.getCurrentInstance();
     PortletPreferences portletPref = pcontext.getRequest().getPreferences();
@@ -535,6 +575,31 @@ public class FAQUtils {
       limitMB = Integer.parseInt(portletPref.getValue(UPLOAD_FILE_SIZE, "").trim());
     }
     return limitMB;
+  }
+  
+  /**
+   * The class use for comparator Answers by markVotes.
+   * 
+   * @param: isASC the type of comparator.
+   *  + isASC == true: comparator by ascending
+   *  + isASC == false: comparator by descending
+  */
+  static public class VoteComparator implements Comparator<Answer> {
+    protected boolean isASC = true;
+
+    public VoteComparator(boolean isASC) {
+      this.isASC = isASC;
+    }
+
+    public int compare(Answer answer1, Answer answer2) {
+      Long vote1 = answer1.getMarkVotes();
+      Long vote2 = answer2.getMarkVotes();
+      if (isASC) {
+        return vote1.compareTo(vote2);
+      } else {
+        return vote2.compareTo(vote1);
+      }
+    }
   }
 
 }

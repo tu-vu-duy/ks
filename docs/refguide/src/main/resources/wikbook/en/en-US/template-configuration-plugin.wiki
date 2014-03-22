@@ -1,15 +1,54 @@
+{docbook}
+<highlights>
+    <itemizedlist>
+      <listitem>
+        <para>
+          <emphasis role="bold">
+            <link linkend="KSref.FAQTemplateConfiguration.ConfigurationPlugin">Configuration plug-in</link>
+          </emphasis></para>
+          <para>Information about the configuration plug-in which is used to automatically set up a default template for the FAQ portlet, and details of properties of the template configuration plug-in.</para>
+      </listitem>
+      <listitem>
+        <para>
+          <emphasis role="bold">
+            <link linkend="KSref.FAQTemplateConfiguration.HowToChangeLookAndFeel">How to change look and feel</link>
+          </emphasis> </para>
+          <para>Instructions on how to change the template FAQ viewer, either by using plug-in or by using the <emphasis>Edit</emphasis> mode.</para>
+      </listitem>
+      <listitem>
+        <para>
+          <emphasis role="bold">
+            <link linkend="KSref.FAQTemplateConfiguration.APIsProvidedByUIComponent">API provided by the UIComponent (UIViewer.java)</link>
+          </emphasis> </para>
+          <para>Introduction to UIViewer, details of APIs and classes (CategoryInfo, QuestionInfo, SubCategoryInfo).</para>
+      </listitem>
+    </itemizedlist>
+	</highlights>
+{docbook}
 
-h1. Configuration plug-in {anchor:id=KSref.FAQTemplateConfiguration.ConfigurationPlugin}
+{docbook}
+<para>
+<prompt>
+   <emphasis role="bold">See also</emphasis>
+</prompt>
+</para>
+{docbook}
+* [Extension points|#KSref.DeveloperReference.ExtensionPoints]
+* [Internal API|#KSref.DeveloperReference.InternalAPI]
+* [Wiki Service API|#KSref.DeveloperReference.WikiService]
+* [Actions over a wiki page from external jars|#KSref.DeveloperReference.Extend_actions_over_a_wiki_page_from_external_jars]
+* [JCR structure|#KSref.JCRStructure]
+
+h1. Configuration plug-in {anchor:id=KSref.FAQTemplateConfiguration.ConfigurationPluginRoleNotInToc}
 Configuration plug-in is used to automatically set up a default template for the FAQ portlet. When the FAQ service starts, it will get values which are returned from the _TemplatePlugin_ component to initialize the template for the FAQ portlet.
 
 The template configuration plug-in is configured in the _templates-configuration.xml_ file.
 
 In details:
 
-At runtime of the FAQ Service, _FAQService_ component is called, then _templates-configuration.xml_ file is executed. The component-plugin named _addTemplatePlugin_ will be referred to _org.exoplatform.faq.service.TemplatePlugin- to execute some objects and create default data for the *Forum* application.
+At runtime of the FAQ Service, _FAQService_ component is called, then _templates-configuration.xml_ file is executed. The component-plugin named _addTemplatePlugin_ will be referred to _org.exoplatform.faq.service.TemplatePlugin_ to execute some objects and create default data for the *Forum* application.
 
-{code:xml}
-<external-component-plugins>
+{code:xml}<external-component-plugins>
   <target-component>org.exoplatform.faq.service.FAQService</target-component>
   <component-plugin>
     <name>faq.default.template</name>
@@ -22,32 +61,37 @@ At runtime of the FAQ Service, _FAQService_ component is called, then _templates
       </value-param>
     </init-params>
   </component-plugin>
-</external-component-plugins>
-{code}
+</external-component-plugins>{code}
 
 The properties of template configuration plug-in are defined in the _init-params_ tag as follows:
 
-{code:xml}
-<init-params>
+{code:xml}<init-params>
   <value-param>
     <name>viewerTemplate</name>
     <value>war:/ks-extension/ks/faq/templates/FAQViewerPortlet.gtmpl</value>
   </value-param>
-</init-params>
-{code}
+</init-params>{code}
 
 || Name || Description || Value ||
 |*viewerTemplate* | Path of file template. | war:/ks-extension/ks/faq/templates/ FAQViewerPortlet.gtmpl |
 
 
-h1. How to change look and feel {anchor:id=KSref.FAQTemplateConfiguration.HowToChangeLookAndFeel}
+h1. How to change look and feel {anchor:id=KSref.FAQTemplateConfiguration.HowToChangeLookAndFeelRoleNotInToc}
 You can change the template FAQ viewer in one of the following two ways:
 
-* By using Plug-in. 
+* [By using Plug-in|#KSref.FAQTemplateConfiguration.Plugin]
 
-* By using the *edit mode* to edit template. 
+* [By using the *edit mode*|#KSref.FAQTemplateConfiguration.UsingEditMode]
 
-h2. Plug-in {anchor:id=KSref.FAQTemplateConfiguration.Plugin}
+{docbook}
+<para xml:id="KSref.FAQTemplateConfiguration.Plugin">
+<citetitle>
+<emphasis role="bold">
+Plug-in
+</emphasis>
+</citetitle>
+</para>
+{docbook}
 
 *1.* Create a file named *_FAQViewerPortlet.gtmpl_*. The content of the file is the template of the FAQ viewer.
 
@@ -55,8 +99,16 @@ h2. Plug-in {anchor:id=KSref.FAQTemplateConfiguration.Plugin}
 
 When the server runs, _FAQViewerPortlet.gtmpl_ will initialize the template of the FAQ viewer.
 
-h2. Edit Mode {anchor:id=KSref.FAQTemplateConfiguration.UsingEditMode}
 
+{docbook}
+<para xml:id="KSref.FAQTemplateConfiguration.UsingEditMode">
+<citetitle>
+<emphasis role="bold">
+Edit Mode
+</emphasis>
+</citetitle>
+</para>
+{docbook}
 *1.* Run the server and open the FAQ Portlet.
 
 *2.* Go to *edit mode* and open the *Edit Template* tab.
@@ -64,29 +116,27 @@ h2. Edit Mode {anchor:id=KSref.FAQTemplateConfiguration.UsingEditMode}
 *3.* Edit the content of *text-area-input* and click *Save*. 
 
 
-h1. API provided by the UIComponent (UIViewer.java) {anchor:id=KSref.FAQTemplateConfiguration.APIsProvidedByUIComponent}
+h1. API provided by the UIComponent (UIViewer.java) {anchor:id=KSref.FAQTemplateConfiguration.APIsProvidedByUIComponentRoleNotInToc}
 
 * UIViewer is the child of the component _UIFAQPortlet_. It shows the main content of FAQ portlet.
 
 * List of APIs:
 
 ||Function name || Param || Return || Description||
-|*getCategoryInfo* | Empty | CategoryInfo object | Get the object *CategoryInfo*|
+|*getCategoryInfo* | Empty | CategoryInfo object | Get the object *CategoryInfo*.|
 |*arrangeList* |{{ (List< String > list)}}: List of path | A new list is arranged | Arrange a list of path. |
 |*render* | {{(String)}}: The content of answers or comments | A new string is converted by function render | Render the content of answers or comments. |
 
 * The *CategoryInfo* class:{anchor:id=Category-info}
 
-{code:java}
-...
+{code:java}...
 private String id;
 private String path;
 private String name;
 private List<String> pathName;
 private List<QuestionInfo> questionInfos = new ArrayList<QuestionInfo>();
 private List<SubCategoryInfo> subCateInfos = new ArrayList<SubCategoryInfo>();
-...
-{code}
+...{code}
 
 ||Param|| Type || Description ||
 |*id*|{{String}}| The jcr node name of the category node. |
@@ -98,14 +148,12 @@ private List<SubCategoryInfo> subCateInfos = new ArrayList<SubCategoryInfo>();
 
 * The *QuestionInfo* class:
 
-{code:java}
-...
+{code:java}...
 private String id;
 private String question;
 private String detail;
 private List<String> answers = new ArrayList<String>();
-...
-{code}
+...{code}
 
 ||Param|| Type || Description ||
 |*id*| {{String}} | The jcr node name of the question node. |

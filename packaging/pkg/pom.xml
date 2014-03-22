@@ -4,7 +4,7 @@
   <parent>
     <groupId>org.exoplatform.ks</groupId>
     <artifactId>exo.ks.packaging</artifactId>
-    <version>2.2.9-SNAPSHOT</version>
+    <version>2.2.16-SNAPSHOT</version>
   </parent>
   <artifactId>exo.ks.packaging.assembly</artifactId>
   <packaging>pom</packaging>
@@ -557,6 +557,11 @@
       <version>${org.hibernate.version}</version>
     </dependency>
     <dependency>
+      <groupId>org.hibernate</groupId>
+      <artifactId>hibernate-validator</artifactId>
+      <version>${hibernate-validator.version}</version>
+    </dependency>
+    <dependency>
       <groupId>org.testng</groupId>
       <artifactId>testng</artifactId>
       <version>${org.testng.version}</version>
@@ -692,11 +697,6 @@
       <version>${org.xwiki.platform.version}</version>
     </dependency>
     <dependency>
-      <groupId>org.xwiki.commons</groupId>
-      <artifactId>xwiki-commons-legacy-component</artifactId>
-      <version>${org.xwiki.platform.version}</version>
-    </dependency>
-    <dependency>
       <groupId>org.xwiki.rendering</groupId>
       <artifactId>xwiki-rendering-api</artifactId>
       <version>${org.xwiki.platform.version}</version>
@@ -708,7 +708,12 @@
     </dependency>
     <dependency>
       <groupId>org.xwiki.rendering</groupId>
-      <artifactId>xwiki-rendering-syntax-xwiki2</artifactId>
+      <artifactId>xwiki-rendering-syntax-xwiki20</artifactId>
+      <version>${org.xwiki.platform.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.xwiki.rendering</groupId>
+      <artifactId>xwiki-rendering-syntax-xwiki21</artifactId>
       <version>${org.xwiki.platform.version}</version>
     </dependency>
     <dependency>
@@ -833,12 +838,12 @@
       <version>${project.version}</version>
       <type>jar</type>
     </dependency>
-    <dependency>
+    <!--dependency>
       <groupId>org.exoplatform.ks</groupId>
       <artifactId>exo.ks.component.macro.jira</artifactId>
       <version>${project.version}</version>
       <type>jar</type>
-    </dependency>
+    </dependency-->
     <dependency>
       <groupId>org.exoplatform.ks</groupId>
       <artifactId>exo.ks.component.common</artifactId>

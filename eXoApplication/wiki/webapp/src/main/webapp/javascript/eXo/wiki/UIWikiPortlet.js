@@ -31,21 +31,21 @@ UIWikiPortlet.prototype.init = function(portletId, linkId) {
   me.wikiportlet = document.getElementById(portletId);
   me.changeWindowTite(me.wikiportlet);
   me.changeModeLink = document.getElementById(linkId);
-
-  // window.onload = function(event) {me.changeMode(event);};
-  /*window.onbeforeunload = function(event) {
-    me.changeMode(event);
-  };*/
-
-  if (document.attachEvent)
-    me.wikiportlet.attachEvent("onmouseup", me.onMouseUp);
+  var head = document.getElementsByTagName('head')[0];
+  var newStyle = document.createElement('style');
+  var cssStyle =  'body { position:relative;overflow:visible  !important; } body * {       visibility: hidden;  }';
+  newStyle.setAttribute('type', 'text/css');
+  newStyle.setAttribute('media', 'print');
+  if(newStyle.styleSheet)
+  {
+    newStyle.styleSheet.cssText= cssStyle;
+  }
   else
-    me.wikiportlet.onmouseup = function(event) {
-      me.onMouseUp(event);
-    };
-  me.wikiportlet.onkeyup = function(event) {
-    me.onKeyUp(event);
-  };
+  {
+    newStyle.appendChild(document.createTextNode(cssStyle));
+  }
+
+  head.appendChild(newStyle);
 }
 
 UIWikiPortlet.prototype.changeWindowTite = function(elm) {
@@ -289,18 +289,18 @@ UIWikiPortlet.prototype.makeRenderingErrorsExpandable = function (uicomponentId)
   var uicomponent = document.getElementById(uicomponentId);
   var DOMUtil = eXo.core.DOMUtil;
   if(uicomponent) {
-  	var renderingErrors = DOMUtil.findDescendantsByClass(uicomponent,"div","xwikirenderingerror" );
+  	var renderingErrors = DOMUtil.findDescendantsByClass(uicomponent,"span","xwikirenderingerror" );
     for (i=0;i<renderingErrors.length;i++) {
     var renderingError = renderingErrors[i];
     var descriptionError = renderingError.nextSibling;
     if (descriptionError.innerHTML !== "" && DOMUtil.hasClass(descriptionError,"xwikirenderingerrordescription")) {
       renderingError.style.cursor="pointer";            
     	eXo.core.EventManager.addEvent(renderingError,"click",function(event){
-    		if(!DOMUtil.hasClass(descriptionError,"hidden")) {
-          descriptionError.className += ' ' + "hidden";
+    		if(!DOMUtil.hasClass(this.nextSibling,"hidden")) {
+    		  this.nextSibling.className += ' ' + "hidden";
         }
         else {
-            DOMUtil.removeClass(descriptionError, "hidden");
+            DOMUtil.removeClass(this.nextSibling, "hidden");
           }
         });
       }

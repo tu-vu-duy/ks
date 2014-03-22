@@ -21,14 +21,16 @@ import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.CopyOnWriteArrayList;
 
 import javax.jcr.NodeIterator;
 
+import org.exoplatform.commons.utils.ListAccess;
 import org.exoplatform.container.ExoContainerContext;
 import org.exoplatform.container.component.ComponentPlugin;
 import org.exoplatform.container.xml.InitParams;
@@ -60,7 +62,10 @@ import org.exoplatform.forum.service.Topic;
 import org.exoplatform.forum.service.TopicType;
 import org.exoplatform.forum.service.UserLoginLogEntry;
 import org.exoplatform.forum.service.UserProfile;
+import org.exoplatform.forum.service.Utils;
 import org.exoplatform.forum.service.Watch;
+import org.exoplatform.forum.service.impl.model.PostFilter;
+import org.exoplatform.forum.service.impl.model.PostListAccess;
 import org.exoplatform.ks.common.CommonUtils;
 import org.exoplatform.ks.common.conf.RoleRulesPlugin;
 import org.exoplatform.management.annotations.ManagedBy;
@@ -86,11 +91,12 @@ public class ForumServiceImpl implements ForumService, Startable {
 
   private ForumServiceManaged        managementView;                                                  // will be automatically set at @ManagedBy processing
 
-  final List<String>                 onlineUserList_ = new CopyOnWriteArrayList<String>();
+  private Map<String, List<String>>  onlineUserMap   = new HashMap<String, List<String>>();
 
   final Queue<UserLoginLogEntry>     queue           = new ConcurrentLinkedQueue<UserLoginLogEntry>();
 
-  private String                     lastLogin_      = "";
+//  private String                     lastLogin_      = "";
+  private Map<String, String>        lastLoginMap      = new HashMap<String, String>();
 
   private ForumStatisticsService     forumStatisticsService;
 
@@ -428,6 +434,13 @@ public class ForumServiceImpl implements ForumService, Startable {
   public void setViewCountTopic(String path, String userRead){
     storage.setViewCountTopic(path, userRead);
   }
+  
+  /**
+   * {@inheritDoc}
+   */
+  public void writeViews() {
+    storage.writeViews();
+  }
 
   /**
    * {@inheritDoc}
@@ -510,6 +523,13 @@ public class ForumServiceImpl implements ForumService, Startable {
    */
   public JCRPageList getPosts(String categoryId, String forumId, String topicId, String isApproved, String isHidden, String strQuery, String userLogin) throws Exception {
     return storage.getPosts(categoryId, forumId, topicId, isApproved, isHidden, strQuery, userLogin);
+  }
+  
+  /**
+   * {@inheritDoc}
+   */
+  public ListAccess<Post> getPosts(PostFilter filter) throws Exception {
+    return new PostListAccess(PostListAccess.Type.POSTS, storage, filter);
   }
 
   /**
@@ -928,17 +948,15 @@ public class ForumServiceImpl implements ForumService, Startable {
     UserLoginLogEntry loginEntry = queue.poll();
     if (loginEntry == null)
       return;
-    int maxOnline = loginEntry.totalOnline;
+    int maxOnline = 1;
     Calendar timestamp = loginEntry.loginTime;
     while (loginEntry != null) {
-      try {
+      if(Utils.getCurrentTenantName().equals(loginEntry.tenantName)) {
         storage.updateLastLoginDate(loginEntry.userName);
         if (loginEntry.totalOnline > maxOnline) {
           maxOnline = loginEntry.totalOnline;
           timestamp = loginEntry.loginTime;
         }
-      } catch (Exception e) {
-        log.warn("Can not log information for user '" + loginEntry.userName + "'");
       }
       loginEntry = queue.poll();
     }
@@ -970,11 +988,14 @@ public class ForumServiceImpl implements ForumService, Startable {
    */
   public void userLogin(String userId) throws Exception {
     // Note: login and onlineUserlist shoudl be anaged by forumStatisticsService.memberIn();
-    lastLogin_ = userId;
-    if (!onlineUserList_.contains(userId)) {
-      onlineUserList_.add(userId);
+    String currentTenant = Utils.getCurrentTenantName();
+    lastLoginMap.put(currentTenant, userId);
+    List<String> onlinUsers = Utils.getOnlineUserByTenantName(onlineUserMap);
+    if (!onlinUsers.contains(userId)) {
+      onlinUsers.add(userId);
+      onlineUserMap.put(currentTenant, onlinUsers);
     }
-    UserLoginLogEntry loginEntry = new UserLoginLogEntry(userId, onlineUserList_.size(), 
+    UserLoginLogEntry loginEntry = new UserLoginLogEntry(currentTenant, userId, onlinUsers.size(), 
                                                          CommonUtils.getGreenwichMeanTime());
     queue.add(loginEntry);
     CacheUserProfile.storeInCache(userId, storage.getDefaultUserProfile(userId, null));
@@ -984,8 +1005,10 @@ public class ForumServiceImpl implements ForumService, Startable {
    * {@inheritDoc}
    */
   public void userLogout(String userId) throws Exception {
-    if (onlineUserList_.contains(userId)) {
-      onlineUserList_.remove(userId);
+    List<String> onlinUsers = Utils.getOnlineUserByTenantName(onlineUserMap);
+    if (onlinUsers.contains(userId)) {
+      onlinUsers.remove(userId);
+      onlineUserMap.put(Utils.getCurrentTenantName(), onlinUsers);
     }
     removeCacheUserProfile(userId);
   }
@@ -994,27 +1017,21 @@ public class ForumServiceImpl implements ForumService, Startable {
    * {@inheritDoc}
    */
   public boolean isOnline(String userId) throws Exception {
-    try {
-      if (onlineUserList_.contains(userId))
-        return true;
-    } catch (Exception e) {
-      log.error("could not determine if user " + userId + " is online", e);
-    }
-    return false;
+    return Utils.getOnlineUserByTenantName(onlineUserMap).contains(userId);
   }
 
   /**
    * {@inheritDoc}
    */
   public List<String> getOnlineUsers() throws Exception {
-    return onlineUserList_;
+    return Utils.getOnlineUserByTenantName(onlineUserMap);
   }
 
   /**
    * {@inheritDoc}
    */
   public String getLastLogin() throws Exception {
-    return lastLogin_;
+    return lastLoginMap.get(Utils.getCurrentTenantName());
   }
 
   /**
@@ -1075,6 +1092,13 @@ public class ForumServiceImpl implements ForumService, Startable {
    */
   public void updateTopicAccess(String userId, String topicId) {
     storage.updateTopicAccess(userId, topicId);
+  }
+  
+  /**
+   * {@inheritDoc}
+   */
+  public void writeReads() {
+    storage.writeReads();
   }
 
   /**

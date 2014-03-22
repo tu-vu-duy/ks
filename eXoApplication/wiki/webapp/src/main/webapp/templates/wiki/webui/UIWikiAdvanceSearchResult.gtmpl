@@ -1,11 +1,14 @@
 <%
+import org.apache.commons.lang.StringEscapeUtils;
+
 import org.exoplatform.wiki.mow.api.Page ;
 import org.exoplatform.wiki.mow.api.WikiNodeType ;
 import org.exoplatform.wiki.mow.core.api.wiki.AttachmentImpl ;
 import org.exoplatform.commons.utils.PageList ;
 import org.exoplatform.wiki.service.search.SearchResult;
-import org.exoplatform.wiki.commons.Utils ;
+import org.exoplatform.wiki.commons.Utils;
 import org.exoplatform.wiki.webui.core.UIAdvancePageIterator;
+import org.exoplatform.wiki.service.WikiPageParams;
 
 	PageList<SearchResult> results = uicomponent.getResults() ;	
 	if(results != null &&	results.getAll().size() > 0) {
@@ -13,22 +16,24 @@ import org.exoplatform.wiki.webui.core.UIAdvancePageIterator;
 		resultInfo = resultInfo.replace("{0}", String.valueOf(results.getFrom()+1));
 		resultInfo = resultInfo.replace("{1}", results.getTo().toString());
 		resultInfo = resultInfo.replace("{2}", results.getAll().size().toString());
-		resultInfo = resultInfo.replace("{3}", "<strong>" + uicomponent.getKeyword() + "</strong>");
+		resultInfo = resultInfo.replace("{3}", "<strong>" + StringEscapeUtils.escapeHtml(uicomponent.getKeyword()) + "</strong>");
 %>		
 		<div class="UIWikiAdvanceSearchResult" id="$uicomponent.id">
 			<div class="ResultInfo"><%=resultInfo%></div>
 			<%
-				for(SearchResult result in results.getPage(results.getCurrentPage())) {
-				  def page= uicomponent.getPage(result);
-					def wiki= uicomponent.getWiki(page);
-					String wikiURI = uicomponent.getWikiNodeUri(wiki) ;
+				for(SearchResult result in results.getAll()) {
+				    def page = uicomponent.getPage(result);
+					def wiki= uicomponent.getWiki(page);					
+				    WikiPageParams pageParams = new WikiPageParams(wiki.getType(), wiki.getOwner(), page.getName());				    
+					String pageURI = Utils.getURLFromParams(pageParams);
+					pageParams.setPageId(WikiPageParams.WIKI_HOME);
+					String wikiURI = Utils.getURLFromParams(pageParams);
 					String space = wiki.getOwner();
 					String wikiType= wiki.getType();
 					String wikiLabel = _ctx.appRes("UIWikiAdvanceSearchResult.label.Wiki");
 					String timeMsg = _ctx.appRes("UIWikiAdvanceSearchResult.label.time");
 					timeMsg = timeMsg.replace("{0}", uicomponent.getDateFormat(result.getCreatedDate())).replace("{1}", uicomponent.getDateFormat(result.getUpdatedDate()));
 					wikiLabel = wikiLabel.replace("{0}", wikiType);
-					String pageURI = wikiURI + result.getPageName() ;
 					String pageTitle = result.getTitle();
 					String pageOldTitle = uicomponent.getOldPageTitleInSearchResult(page, pageTitle);
 					if(WikiNodeType.WIKI_PAGE_CONTENT.equals(result.getType())) {										
@@ -52,8 +57,7 @@ import org.exoplatform.wiki.webui.core.UIAdvancePageIterator;
 				</div>
 						<%	
 					} else if (WikiNodeType.WIKI_ATTACHMENT.equals(result.getType())){
-						att = (AttachmentImpl) org.exoplatform.wiki.utils.Utils.getObject( result.getPath(),
-																																															 WikiNodeType.WIKI_ATTACHMENT);						
+						att = (AttachmentImpl) org.exoplatform.wiki.utils.Utils.getObject( result.getPath(), result.getType());
 						String downloadlink = att.getDownloadURL();						
 						String extension = Utils.getExtension(att.getName()) ;
 						%>				 

@@ -19,6 +19,7 @@ package org.exoplatform.forum.service;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
@@ -27,6 +28,10 @@ import java.util.Map;
 
 import javax.jcr.Value;
 
+import org.exoplatform.container.ExoContainerContext;
+import org.exoplatform.services.jcr.RepositoryService;
+import org.exoplatform.services.log.ExoLogger;
+import org.exoplatform.services.log.Log;
 import org.exoplatform.services.organization.User;
 
 /**
@@ -36,6 +41,8 @@ import org.exoplatform.services.organization.User;
  * Jun 2, 2008 - 3:33:33 AM  
  */
 public class Utils implements ForumNodeTypes {
+  
+  private final static Log   LOG                   = ExoLogger.getLogger(Utils.class);
 
   public final static String TYPE_CATEGORY         = "exo:forumCategory".intern();
 
@@ -89,7 +96,10 @@ public class Utils implements ForumNodeTypes {
 
   public static final String DELETED               = "_deleted".intern();
 
-  public static final String CACHE_REPO_NAME               = "repositoryName".intern();
+  public static final String CACHE_REPO_NAME       = "repositoryName".intern();
+  
+  public static final String DEFAULT_TENANT_NAME   = Long.toHexString(System.currentTimeMillis() 
+                                                                      + System.identityHashCode("currentTenant"));
 
   // Type Modify
   public static final int    CLOSE                 = 1;
@@ -449,6 +459,44 @@ public class Utils implements ForumNodeTypes {
   }
 
   /**
+   * build Xpath query for check has property existing. 
+   * @param String property is the property of node
+   * @return String
+   * @since 2.2.10
+   */
+  public static String buildXpathHasProperty(String property) {
+    StringBuilder builder = new StringBuilder();
+    if(!isEmpty(property)){
+      builder.append("(not(@").append(property).append(") or @").append(property).append("='' or @").append(property).append("=' ')");
+    }
+    return builder.toString();
+  }
+  
+  /**
+   * build Xpath query for case comparator with all properties of user and other property. 
+   * @param String property is the property of node
+   * @param List groupAndMembershipInfos is list all properties of user
+   * @return String
+   * @since 2.2.10
+   */
+  public static String buildXpathByUserInfo(String property, List<String> groupAndMembershipInfos) {
+    StringBuilder query = new StringBuilder();
+    for (String str : groupAndMembershipInfos) {
+      if(query.length() > 0) {
+        query.append(" or ");
+      }
+      query.append("@").append(property).append(" = '").append(str).append("'");
+      if (ForumServiceUtils.isGroupExpression(str)) {
+        query.append(" or @").append(property).append(" = '*:").append(str).append("'");
+      } else if(ForumServiceUtils.isMembershipExpression(str)){
+        str = str.substring(str.indexOf(":")+1);
+        query.append(" or @").append(property).append(" = '*:").append(str).append("'");
+      }
+    }
+    return query.toString();
+  }
+
+  /**
    * Checking a user who whether contained Users/MemberShip/Group ? 
    * @param listOfCanviewrs
    * @param listOfBoundUsers
@@ -475,5 +523,96 @@ public class Utils implements ForumNodeTypes {
         return true;
     }
     return false;
+  }
+  
+  /**
+   * Get Category ID from path.
+   * @param path
+   * @return
+   * @since 2.3.0
+   */
+  public static String getCategoryId(String path) {
+    if (!Utils.isEmpty(path) && path.lastIndexOf(Utils.CATEGORY) != -1) {
+      String category = path.substring(path.lastIndexOf(Utils.CATEGORY));
+      if (category.indexOf("/") != -1) {
+        category = category.substring(0, category.indexOf("/"));
+      }
+      return category;
+    }
+    return null;
+  }
+
+  /**
+   * Get Category path.
+   * @param path
+   * @return
+   * @since 2.3.0
+   */
+  public static String getCategoryPath(String path) {
+    if (!Utils.isEmpty(path) && path.lastIndexOf(Utils.CATEGORY) != -1) {
+      return path.substring(0, path.lastIndexOf(Utils.CATEGORY) + getCategoryId(path).length());
+    }
+    return null;
+  }
+
+  /**
+   * Get Forum ID from path.
+   * @param path
+   * @return
+   * @since 2.3.0
+   */
+  public static String getForumId(String path) {
+    if (!Utils.isEmpty(path) && path.lastIndexOf(Utils.FORUM) != -1) {
+      String forumId = path.substring(path.lastIndexOf(Utils.FORUM));
+      if (forumId.indexOf("/") != -1) {
+        forumId = forumId.substring(0, forumId.indexOf("/"));
+      }
+      return forumId;
+    }
+    return null;
+  }
+
+  /**
+   * Get Forum path.
+   * @param path
+   * @return
+   * @since 2.3.0
+   */
+  public static String getForumPath(String path) {
+    if (!Utils.isEmpty(path) && path.lastIndexOf(Utils.FORUM) != -1) {
+      return path.substring(0, path.lastIndexOf(Utils.FORUM) + getForumId(path).length());
+    }
+    return null;
+  }
+  
+  static public String getCurrentTenantName() {
+    RepositoryService repositoryService = (RepositoryService) ExoContainerContext.getCurrentContainer().getComponentInstanceOfType(RepositoryService.class);
+    if (repositoryService == null) {
+      LOG.warn("Can not get current repository!");
+      return null;
+    }
+    try {
+      return repositoryService.getCurrentRepository().getConfiguration().getName();
+    } catch (Exception e) {
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("Can not get current repository", e);
+      }
+    }
+    return DEFAULT_TENANT_NAME;
+  }
+
+  static public List<String> getOnlineUserByTenantName(Map<String, List<String>> onlineUserMap) {
+    List<String> onlinUsers = new ArrayList<String>();
+    String currentTenant = getCurrentTenantName();
+    //
+    if(currentTenant == null) {
+      return Collections.emptyList();
+    }
+    
+    //
+    if (onlineUserMap != null && onlineUserMap.get(currentTenant) != null) {
+      onlinUsers.addAll(onlineUserMap.get(currentTenant));
+    }
+    return onlinUsers;
   }
 }

@@ -51,6 +51,7 @@ import org.chromattic.api.annotations.Property;
 import org.chromattic.api.annotations.WorkspaceName;
 import org.chromattic.ext.ntdef.NTFolder;
 import org.chromattic.ext.ntdef.Resource;
+import org.exoplatform.services.security.ConversationState;
 import org.exoplatform.wiki.chromattic.ext.ntdef.NTVersion;
 import org.exoplatform.wiki.chromattic.ext.ntdef.VersionableMixin;
 import org.exoplatform.wiki.mow.api.Page;
@@ -118,7 +119,12 @@ public abstract class PageImpl extends NTFolder implements Page {
     this.componentManager = componentManager;
   }
 
-  private Node getJCRPageNode() throws Exception {
+  /**
+   * Return the jcr node mapped to the this page object.
+   * @return A <code>Node</code>
+   * @throws Exception
+   */
+  public Node getJCRPageNode() throws Exception {
     return (Node) getChromatticSession().getJCRSession().getItem(getPath());
   }
   
@@ -301,7 +307,18 @@ public abstract class PageImpl extends NTFolder implements Page {
       file.setContentResource(contentResource);
     }
     getChromatticSession().save();
+    setFullPermissionForOwner(file);
     return file;
+  }
+  
+  private void setFullPermissionForOwner(AttachmentImpl file) throws Exception {
+    ConversationState conversationState = ConversationState.getCurrent();
+    
+    if (conversationState != null) {
+      HashMap<String, String[]> permissions = file.getPermission();
+      permissions.put(conversationState.getIdentity().getUserId(), org.exoplatform.services.jcr.access.PermissionType.ALL);
+      file.setPermission(permissions);
+    }
   }
   
   @OneToMany
@@ -362,7 +379,7 @@ public abstract class PageImpl extends NTFolder implements Page {
     TreeMap<String, PageImpl> result = new TreeMap<String, PageImpl>(new Comparator<String>() {
       @Override
       public int compare(String o1, String o2) {
-        return o1.toLowerCase().compareTo(o2.toLowerCase());
+        return o1.compareTo(o2);
       }
     });
     List<PageImpl> pages = new ArrayList<PageImpl>(getChildrenContainer().values());
@@ -390,11 +407,6 @@ public abstract class PageImpl extends NTFolder implements Page {
 
   public void setPermission(HashMap<String, String[]> permissions) throws Exception {
     permission.setPermission(permissions, getPath());
-    
-    Collection<AttachmentImpl> attachments = getAttachments();
-    for (AttachmentImpl attachment : attachments) {
-      attachment.setPermission(permissions);
-    }
   }
   
   public void setNonePermission() throws Exception {

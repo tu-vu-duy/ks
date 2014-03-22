@@ -20,6 +20,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
+import org.apache.commons.lang.StringEscapeUtils;
 import org.exoplatform.container.PortalContainer;
 import org.exoplatform.portal.webui.util.Util;
 import org.exoplatform.services.jcr.datamodel.IllegalNameException;
@@ -116,15 +117,27 @@ public class SavePageActionComponent extends UIComponent {
       try {
         WikiNameValidator.validate(titleInput.getValue());
       } catch (IllegalNameException ex) {
+    	  if (wikiRichTextArea.isRendered()) {
+    	        String htmlContent = wikiRichTextArea.getUIFormTextAreaInput().getValue();
+    	        String markupContent = renderingService.render(htmlContent,
+    	                                                       Syntax.XHTML_1_0.toIdString(),
+    	                                                       syntaxId,
+    	                                                       false);
+    	        markupInput.setValue(markupContent);
+    	        wikiPortlet.changeMode(WikiMode.VIEW);
+    	        super.processEvent(event);
+    	      }
         String msg = ex.getMessage();
         ApplicationMessage appMsg = new ApplicationMessage("WikiPageNameValidator.msg.EmptyTitle",
                                                            null,
                                                            ApplicationMessage.WARNING);
         if (msg != null) {
           Object[] arg = { msg };
-          appMsg = new ApplicationMessage("WikiPageNameValidator.msg.Invalid-char",
-                                          arg,
-                                          ApplicationMessage.WARNING);
+          if (ex.getCause() == null ) {
+            appMsg = new ApplicationMessage("WikiPageNameValidator.msg.Invalid-char",arg, ApplicationMessage.WARNING);
+          } else {
+            appMsg = new ApplicationMessage("WikiPageNameValidator.msg.Invalid-Expression",arg, ApplicationMessage.WARNING);
+          }
         }
         event.getRequestContext().getUIApplication().addMessage(appMsg);
         event.getRequestContext().setProcessRender(true);
@@ -187,22 +200,23 @@ public class SavePageActionComponent extends UIComponent {
           if (minorAtt != null) {
             ((PageImpl) page).setMinorEdit(Boolean.parseBoolean(minorAtt.toString()));
           }
+          synchronized (((PageImpl) page).getJCRPageNode().getUUID()) {
+            page.setComment(StringEscapeUtils.escapeHtml(commentInput.getValue()));
+            page.setSyntax(syntaxId);
+            pageTitleControlForm.getUIFormInputInfo().setValue(title);
+            pageParams.setPageId(page.getName());
+            ((PageImpl) page).setURL(Utils.getURLFromParams(pageParams));
+            page.getContent().setText(markup);
 
-          page.setComment(commentInput.getValue());
-          page.setSyntax(syntaxId);
-          pageTitleControlForm.getUIFormInputInfo().setValue(title);
-          pageParams.setPageId(page.getName());
-          ((PageImpl) page).setURL(Utils.getURLFromParams(pageParams));          
-          page.getContent().setText(markup);
-
-          if (!pageEditForm.getTitle().equals(title)) {
-            page.setTitle(title);
-            ((PageImpl) page).checkin();
-            ((PageImpl) page).checkout();
-            pageParams.setPageId(newPageId);
-          } else {
-            ((PageImpl) page).checkin();
-            ((PageImpl) page).checkout();
+            if (!pageEditForm.getTitle().equals(title)) {
+              page.setTitle(title);
+              ((PageImpl) page).checkin();
+              ((PageImpl) page).checkout();
+              pageParams.setPageId(newPageId);
+            } else {
+              ((PageImpl) page).checkin();
+              ((PageImpl) page).checkout();
+            }
           }
         } else if (wikiPortlet.getWikiMode() == WikiMode.ADDPAGE) {
           String sessionId = Util.getPortalRequestContext().getRequest().getSession(false).getId();

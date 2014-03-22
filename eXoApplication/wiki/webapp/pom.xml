@@ -4,7 +4,7 @@
   <parent>
     <groupId>org.exoplatform.ks</groupId>
     <artifactId>exo.ks.eXoApplication.wiki</artifactId>
-    <version>2.2.9-SNAPSHOT</version>
+    <version>2.2.16-SNAPSHOT</version>
   </parent>
   <artifactId>exo.ks.eXoApplication.wiki.webapp</artifactId>
   <packaging>war</packaging>
@@ -109,6 +109,43 @@
       <artifactId>servlet-api</artifactId>
       <version>${javax.servlet.servlet-api.version}</version>
       <scope>provided</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>com.smartgwt</groupId>
+      <artifactId>smartgwt</artifactId>
+      <version>${smartgwt.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.xwiki.platform</groupId>
+      <artifactId>xwiki-platform-gwt-user</artifactId>
+      <version>${org.xwiki.platform.version}</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.xwiki.platform</groupId>
+      <artifactId>xwiki-platform-gwt-dom</artifactId>
+      <version>${org.xwiki.platform.version}</version>
+      <scope>provided</scope>
+    </dependency>    
+    
+    <dependency>
+      <groupId>org.xwiki.platform</groupId>
+      <artifactId>xwiki-platform-wysiwyg-plugin-api</artifactId>
+      <version>${org.xwiki.platform.version}</version>
+      <scope>provided</scope>
+    </dependency>    
+    
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>${junit.version}</version>
+      <scope>test</scope>
+    </dependency>
+     <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-all</artifactId>
+      <scope>test</scope>
     </dependency>
   </dependencies>
 

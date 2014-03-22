@@ -1,5 +1,29 @@
-This chapter describes about configurations used in eXo Knowledge. It consists of the following main sections:
-
-* [Components|#KSref.Configuration.Components]
-* [External-component-plugin|#KSref.Configuration.External-component-plugins]
-* [Data Injector Servive|#KSref.Configuration.Data_Injector_Service]
+{docbook}
+<abstract>
+ <para>This chapter describes configurations used in Knowledge. It consists of the following main sections:</para>
+    <itemizedlist>
+      <listitem>
+        <para>
+          <emphasis role="bold">
+            <link linkend="KSref.Configuration.Components">Components</link>
+          </emphasis> </para>
+          <para>Basic information about 3 types of components which are used to implement the Knowledge applications: Knowledge, Forum, Answers and Polls. </para>
+      </listitem>
+      <listitem>
+        <para>
+          <emphasis role="bold">
+            <link linkend="KSref.Configuration.External-component-plugins">External component plugins</link>
+          </emphasis> </para>
+          <para>Description of the main external component plugins used in Knowledge: Init data, Roles, ProfileProvider, Forum, Answer, and Poll. Each part supplies an example
+           configuration with the explanation about ini-params so you can know how to use these plugins. </para>
+      </listitem>
+      <listitem>
+        <para>
+          <emphasis role="bold">
+            <link linkend="KSref.Configuration.Data_Injector_Service">Data Injectors</link>
+          </emphasis> </para>
+          <para>Introduction to the data injectors which are used to create data for performance test in Knowledge, their configurations and how to use them.</para>
+      </listitem>
+    </itemizedlist>
+	</abstract>
+{docbook}

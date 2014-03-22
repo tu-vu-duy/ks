@@ -406,7 +406,6 @@ table.UIFormGrid div.Id {
 .UIWikiPortlet .UIWikiPageArea {
 	padding: 0px 15px 45px 15px;
 	overflow: visible;
-	min-height: 300px;
 }
 
 .UIWikiPageContentArea table {
@@ -519,6 +518,10 @@ table.UIFormGrid div.Id {
 
 .UIWikiPortlet .UIWikiContentDisplay {
 	padding: 20px 10px 10px;
+}
+
+.UIWikiPortlet .UIWikiContentDisplay .WikiContent table {
+	width: auto;
 }
 
 .UIWikiPageVersionsList {
@@ -681,6 +684,10 @@ table.UIFormGrid div.Id {
 	border-spacing: 0;
 	border: 1px solid #dddddd;
 	border-right: none;
+	width: auto;
+}
+
+.UIWikiPagePreview .UIWikiPortlet .WikiContent table {
 	width: auto;
 }
 
@@ -1025,15 +1032,15 @@ table.UIFormGrid div.Id {
 }
 
 .UIWikiBottomArea {
-	position: absolute;
-	bottom:0px;
-	left: 15px;
 	padding: 0px 0px 5px;
 	width: 97.5%;
+    margin-left: 15px;
 }
 
 *+html .UIWikiBottomArea {
 	position: static;
+	padding: 5px 15px;
+	width: auto;
 }
 
 .UIWikiPageInfoArea {
@@ -1457,9 +1464,9 @@ table.UIFormGrid div.Id {
 	display: block;
 	float: left;
 	line-height: 15px;
-	width: 60px;
 	color: #636363;
 	margin-top: 5px;
+	margin-right: 10px;
 }
 
 .UIWikiPageEditForm .CommentInput input {
@@ -1686,6 +1693,13 @@ table.UIFormGrid div.Id {
   outline: none;
 }
 
+*+html .UIWikiPortlet .UITemplateSettingForm .UIGrid a {
+	text-indent: 0px;
+	font-size: 0px;
+	line-height: 0;
+}
+
+
 .UIWikiPortlet .UIWikiTemplateForm .UIGrid .EditTemplateIcon { 
   background:url(background/EditTemplateIcon.gif) no-repeat left center;
 }
@@ -1731,4 +1745,44 @@ table.UIFormGrid div.Id {
 .UIWikiPortlet .TitleInfo:HOVER {
   background-color: whitesmoke;
   cursor: pointer;
+}
+
+@media print
+{
+  #UIWikiPageContentArea, #UIWikiPageContentArea * {
+    visibility:visible;
+    overflow: visible !important;
+  }
+  #UIWikiPageContentArea {
+	visibility:visible;
+    position:absolute;
+    left:0;
+    top:0;
+    width:100%;
+  }
+  #UIWikiPageControlArea_PageToolBar, #UIWikiPageControlArea_PageToolBar * {
+    visibility:hidden;
+  }
+  .UIWikiPortlet .UIWikiMiddleArea .UIWikiPageContainer {
+    position: static !important;
+  }
+  .UIWikiPortlet .WikiLayout {
+    position: static !important;
+  }
+  .UILeftContainerArea {
+	  border: solid 1px magenta;
+	  height: auto !important;
+	  min-height:0px !important;
+  }
+  .WikiLayout {
+	  height: auto !important;
+  }
+  .Spliter {
+	  height: auto !important;
+  }
+  .UIRightContainerArea {
+	  overflow: visible !important;
+	  width: auto !important;
+	  height: auto !important;
+  }
 }

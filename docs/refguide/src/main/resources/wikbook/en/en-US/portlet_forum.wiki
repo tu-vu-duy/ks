@@ -1,23 +1,36 @@
-h1. Overview {anchor:id=KSref.ForumPortlet.Overview}
+The Forum portlet is the application for users to post and read messages on different topics.
+{docbook}
+<para>
+<citetitle>
+<emphasis role="bold">
+Package
+</emphasis>
+</citetitle>
+</para>
+{docbook}
+This portlet is packaged in the _forum.war_ file.
 
-|| Portlet name || War name || Description ||
-| *ForumPortlet* | forum.war | The Forum portlet is the application for users to post and read messages on different topics. |
-	
-* Declaration template	
+{docbook}
+<para xml:id="KSref.FoumPortlet.ForumPortletxml">
+<citetitle>
+<emphasis role="bold">
+Portlet.xml
+</emphasis>
+</citetitle>
+</para>
+{docbook}
 
-{code:xml}
-<portlet-application>
-  <portlet>
-    <application-ref>forum</application-ref>
-    <portlet-ref>ForumPortlet</portlet-ref>
-  </portlet>
-</portlet-application>
-{code}	
-
-h1. Portlet.xml {anchor:id=KSref.FoumPortlet.ForumPortletxml}
 * See the _portlet.xml_ file in the project following this path: _forum/WEB-INF/portlet.xml_.
 	
-h1. Preferences {anchor:id=KSref.ForumPortlet.ForumPortletPreferences}
+{docbook}
+<para xml:id="KSref.ForumPortlet.ForumPortletPreferences">
+<citetitle>
+<emphasis role="bold">
+Preferences
+</emphasis>
+</citetitle>
+</para>
+{docbook}
 
 || Preference name || Possible value || Default value || Description ||
 | *useAjax* | {{true}}, {{false}} | {{true}} | Define if links in the Forum will be plain hrefs or javascript ajax (better for SEO) or not. |
@@ -36,18 +49,27 @@ h1. Preferences {anchor:id=KSref.ForumPortlet.ForumPortletPreferences}
 | *isShowRules* | {{true}}, {{false}} | {{true}} | Specify if the forum rules panel is shown or not. |
 | *isShowStatistics* | {{true}}, {{false}} | {{true}} | Specify if the statistics panel is shown or not. |
 
-h1. Events {anchor:id=KSref.ForumPortlet.Event}
+
+{docbook}
+<para xml:id="KSref.ForumPortlet.Event">
+<citetitle>
+<emphasis role="bold">
+Events
+</emphasis>
+</citetitle>
+</para>
+{docbook}
 
 || Name || Description ||
-| *ForumLinkEvent* | Set the render for UIForumLinkPortlet and set values for UIForumLinks. |
-| *ReLoadPortletEvent* | Reload UIForumPortlet. |
-| *OpenLink* | Update values for UIForumLinks. |
-| *ForumPollEvent* | Set the render for UIForumPollPortlet. |
-| *ForumModerateEvent* | Set the render for UIForumModeratorPortlet. |
-| *ForumRuleEvent* | Set the render for UIForumRulePortlet. |
-| *QuickReplyEvent* | Set the render for UIForumQuickReplyPortlet. |
+| *[ForumLinkEvent|#KSref.ForumPortlet.ForumLinkEvent]* | Set the render for UIForumLinkPortlet and set values for UIForumLinks. |
+| *[ReLoadPortletEvent|#KSref.ForumPortlet.ReLoadPortletEvent]* | Reload UIForumPortlet. |
+| *[OpenLink|#KSref.ForumPortlet.OpenLink]* | Update values for UIForumLinks. |
+| *[ForumPollEvent|#KSref.ForumPortlet.ForumPollEvent]* | Set the render for UIForumPollPortlet. |
+| *[ForumModerateEvent|#KSref.ForumPortlet.ForumModerateEvent]* | Set the render for UIForumModeratorPortlet. |
+| *[ForumRuleEvent|#KSref.ForumPortlet.ForumRuleEvent]* | Set the render for UIForumRulePortlet. |
+| *[QuickReplyEvent|#KSref.ForumPortlet.QuickReplyEvent]* | Set the render for UIForumQuickReplyPortlet. |
 
-h2. ForumLinkEvent {anchor:id=KSref.ForumPortlet.ForumLinkEvent}
+*ForumLinkEvent* {anchor:id=KSref.ForumPortlet.ForumLinkEvent}
 This event is fired through UIForumLinkPortlet. 
 
 To receive ForumLinkEvent, you must use the _ForumParameter_ class with two properties:
@@ -58,8 +80,7 @@ To receive ForumLinkEvent, you must use the _ForumParameter_ class with two prop
 
 For example:
 
-{code:java}
-PortletRequestContext pcontext = (PortletRequestContext) WebuiRequestContext.getCurrentInstance();
+{code:java}PortletRequestContext pcontext = (PortletRequestContext) WebuiRequestContext.getCurrentInstance();
 ActionResponse actionRes = (ActionResponse) pcontext.getResponse();
 ForumParameter param = new ForumParameter();
 String path = forum.getPath();
@@ -69,10 +90,9 @@ if ( ...condition to render the UIForumLinkPortlet... ) {
 } else {
   param.setRenderForumLink(false);
 }
-actionRes.setEvent(new QName("ForumLinkEvent"), param) ;
-{code}
+actionRes.setEvent(new QName("ForumLinkEvent"), param) ;{code}
 
-h2. ReLoadPortletEvent {anchor:id=KSref.ForumPortlet.ReLoadPortletEvent}
+*ReLoadPortletEvent* {anchor:id=KSref.ForumPortlet.ReLoadPortletEvent}
 This event is fired through UIForumPortlet. 
 
 To receive ReLoadPortletEvent, you must use the _ForumParameter_ class with two properties:
@@ -82,17 +102,15 @@ To receive ReLoadPortletEvent, you must use the _ForumParameter_ class with two 
 
 For example:
 
-{code:java}
-....
+{code:java}....
 ActionResponse actionRes = pcontext.getResponse() ;
 ForumParameter param = new ForumParameter() ;
 param.setRenderPoll(true);
 param.setTopicId(topic.get());
 actionRes.setEvent(new QName("ReLoadPortletEvent"), param) ;
-....
-{code}
+....{code}
 
-h2. OpenLink {anchor:id=KSref.ForumPortlet.OpenLink}
+*OpenLink* {anchor:id=KSref.ForumPortlet.OpenLink}
 This event is fired through UIForumPortlet. 
 
 To receive OpenLink, you must use the _ForumParameter_ class with one property:
@@ -101,16 +119,14 @@ To receive OpenLink, you must use the _ForumParameter_ class with one property:
 
 For example:
 
-{code:java}
-....
+{code:java}....
 ActionResponse actionRes = pcontext.getResponse() ;
 ForumParameter param = new ForumParameter() ;
 param.setPath(path);
 actionRes.setEvent(new QName("OpenLink"), param) ;
-....
-{code}
+....{code}
 
-h2. ForumPollEvent {anchor:id=KSref.ForumPortlet.ForumPollEvent}
+*ForumPollEvent* {anchor:id=KSref.ForumPortlet.ForumPollEvent}
 This event is fired through UIForumPollPortlet.
 
 To receive ForumPollEvent, you must use the _ForumParameter_ class with four properties:
@@ -122,8 +138,7 @@ To receive ForumPollEvent, you must use the _ForumParameter_ class with four pro
 
 For example:
 
-{code:java}
-....
+{code:java}....
 ActionResponse actionRes = pcontext.getResponse() ;
 ForumParameter param = new ForumParameter() ;
 param.setCategoryId(categoryId) ; 
@@ -131,10 +146,9 @@ param.setForumId(forumId);
 param.setTopicId(topicId);
 param.setRenderPoll(topic.getIsPoll());
 actionRes.setEvent(new QName("ForumPollEvent"), param);
-....
-{code}
+....{code}
 
-h2. ForumModerateEvent {anchor:id=KSref.ForumPortlet.ForumModerateEvent}
+*ForumModerateEvent* {anchor:id=KSref.ForumPortlet.ForumModerateEvent}
 This event is fired through UIForumModeratePortlet.
 
 To receive ForumModerateEvent, you must use the _ForumParameter_ class with two properties:
@@ -144,18 +158,16 @@ To receive ForumModerateEvent, you must use the _ForumParameter_ class with two 
 
 For example:
 
-{code:java}
-....
+{code:java}....
 List<String> moderators = Arays.asList(forum.getModerators());
 ActionResponse actionRes = pcontext.getResponse() ;
 ForumParameter param = new ForumParameter() ;
 param.setModerators(moderators);
 param.setRenderModerator(true);
 actionRes.setEvent(new QName("ForumPollEvent"), param);
-....
-{code}
+....{code}
 
-h2. ForumRuleEvent {anchor:id=KSref.ForumPortlet.ForumRuleEvent}
+*ForumRuleEvent* {anchor:id=KSref.ForumPortlet.ForumRuleEvent}
 This event is fired through UIForumRulePortlet.
 
 To receive ForumRuleEvent, you must use the _ForumParameter_ class with two properties:
@@ -165,8 +177,7 @@ To receive ForumRuleEvent, you must use the _ForumParameter_ class with two prop
 
 For example:
 
-{code:java}
-....
+{code:java}....
 ActionResponse actionRes = pcontext.getResponse() ;
 ForumParameter param = new ForumParameter() ;
 List<String> list = param.getInfoRules();
@@ -180,10 +191,9 @@ list.set(2, String.valueOf(isCanPost));
 param.setInfoRules(list);
 param.setRenderRule(true);
 actionRes.setEvent(new QName("ForumRuleEvent"), param) ;
-....
-{code}
+....{code}
 
-h2. QuickReplyEvent {anchor:id=KSref.ForumPortlet.QuickReplyEvent}
+*QuickReplyEvent* {anchor:id=KSref.ForumPortlet.QuickReplyEvent}
 This event is fired through UIQuickReplyPortlet.
 
 To receive QuickReplyEvent, you must use the _ForumParameter_ class with five properties:
@@ -196,8 +206,7 @@ To receive QuickReplyEvent, you must use the _ForumParameter_ class with five pr
 
 For example:
 
-{code:java}
-....
+{code:java}....
 ActionResponse actionRes = pcontext.getResponse() ;
 ForumParameter param = new ForumParameter() ;
 param.setRenderQuickReply(isCanPost);
@@ -206,5 +215,4 @@ param.setCategoryId(categoryId) ;
 param.setForumId(forumId); 
 param.setTopicId(topicId);
 actionRes.setEvent(new QName("QuickReplyEvent"), param) ;;
-....
-{code}
+....{code}

@@ -17,17 +17,20 @@
 package org.exoplatform.wiki.rendering.macro.pagetree;
 
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 
 import javax.inject.Inject;
 
 import org.apache.commons.lang.StringUtils;
+import org.exoplatform.container.ExoContainerContext;
 import org.exoplatform.services.log.ExoLogger;
 import org.exoplatform.services.log.Log;
+import org.exoplatform.wiki.mow.core.api.wiki.PageImpl;
+import org.exoplatform.wiki.rendering.cache.PageRenderingCacheService;
 import org.exoplatform.wiki.rendering.context.MarkupContextManager;
 import org.exoplatform.wiki.service.WikiContext;
 import org.exoplatform.wiki.service.WikiPageParams;
+import org.exoplatform.wiki.service.WikiService;
 import org.exoplatform.wiki.tree.TreeNode;
 import org.exoplatform.wiki.tree.utils.TreeUtils;
 import org.xwiki.component.annotation.Component;
@@ -91,6 +94,9 @@ public class PageTreeMacro extends AbstractMacro<PageTreeMacroParameters> {
     String documentName = parameters.getRoot();
     String startDepth = parameters.getStartDepth();
     excerpt = parameters.isExcerpt();
+    if (StringUtils.isEmpty(startDepth)) {
+      startDepth = "1";
+    }
     WikiPageParams params = markupContextManager.getMarkupContext(documentName, ResourceType.DOCUMENT);
     if (StringUtils.EMPTY.equals(documentName)) {
       WikiContext wikiContext = getWikiContext();
@@ -99,7 +105,22 @@ public class PageTreeMacro extends AbstractMacro<PageTreeMacroParameters> {
     }
     Block root;
     try {
+    //Check if root page exist
+      WikiService wikiService = (WikiService) ExoContainerContext.getCurrentContainer().getComponentInstanceOfType(WikiService.class);
+      PageImpl wikiPage = (PageImpl) wikiService.getPageById(params.getType(), params.getOwner(), params.getPageId());
+      if(wikiPage ==null){
+      	//If root page has been renamed, find it
+      	wikiPage = (PageImpl) wikiService.getRelatedPage(params.getType(), params.getOwner(), params.getPageId());
+      	if (wikiPage != null) {
+      		params = new WikiPageParams(wikiPage.getWiki().getType(), wikiPage.getWiki().getOwner(), wikiPage.getName());
+      	}
+      }
       root = generateTree(params, startDepth);
+      PageRenderingCacheService renderingCacheService = (PageRenderingCacheService) ExoContainerContext.getCurrentContainer()
+                                                                                                       .getComponentInstanceOfType(PageRenderingCacheService.class);
+      WikiContext wikiContext = getWikiContext();
+      renderingCacheService.addPageLink(new WikiPageParams(wikiContext.getType(), wikiContext.getOwner(), wikiContext.getPageId()),
+                                        new WikiPageParams(params.getType(), params.getOwner(), params.getPageId()));
       return Collections.singletonList(root);
     } catch (Exception e) {
       log.debug("Failed to execute page tree macro", e);
@@ -122,7 +143,7 @@ public class PageTreeMacro extends AbstractMacro<PageTreeMacroParameters> {
 
   protected WikiModel getWikiModel(MacroTransformationContext context) throws MacroExecutionException {
     try {
-      return getComponentManager().lookup(WikiModel.class);
+      return getComponentManager().getInstance(WikiModel.class);
     } catch (ComponentLookupException e) {
       throw new MacroExecutionException("Failed to find wiki model", e);
     }
@@ -131,14 +152,13 @@ public class PageTreeMacro extends AbstractMacro<PageTreeMacroParameters> {
   private Block generateTree(WikiPageParams params, String startDepth) throws Exception {
     StringBuilder treeSb = new StringBuilder();
     StringBuilder initSb = new StringBuilder();
-    HashMap<String, Object> context = new HashMap<String, Object>();
-    context.put(TreeNode.DEPTH, startDepth);
-    context.put(TreeNode.SHOW_EXCERPT, excerpt);
-    TreeNode node = TreeUtils.getDescendants(params, context);      
+    TreeNode node = TreeUtils.getTreeNode(params);
     WikiContext wikiContext = getWikiContext();   
     String treeID = "PageTree"+ wikiContext.getPageTreeId();
     String treeRestURI = wikiContext.getTreeRestURI();
     String redirectURI = wikiContext.getRedirectURI();
+    String baseUrl = wikiContext.getBaseUrl();
+    
     initSb.append("?")
           .append(TreeNode.PATH)
           .append("=")
@@ -155,18 +175,18 @@ public class PageTreeMacro extends AbstractMacro<PageTreeMacroParameters> {
           .append("  <div>")
           .append("    <input class=\"ChildrenURL\" title=\"hidden\" type=\"hidden\" value=\"").append(treeRestURI).append("\" />")
           .append("    <a class=\"SelectNode\" style=\"display:none\" href=\"").append(redirectURI).append("\" ></a>")
-          .append(buildHierachyNode(treeID, initSb.toString()))                
+          .append(buildHierachyNode(treeID, initSb.toString(), baseUrl))                
           .append("  </div>")
           .append("</div>");
     RawBlock testRaw = new RawBlock(treeSb.toString(), XHTML_SYNTAX);
     return testRaw;
   }  
 
-  public String buildHierachyNode(String treeId, String initParam) throws Exception {
+  public String buildHierachyNode(String treeId, String initParam, String baseUrl) throws Exception {
     StringBuilder sb = new StringBuilder();
     sb.append("    <div class=\"NodeGroup\">")
       .append("      <script type=\"text/javascript\">")
-      .append("        function initTree(){eXo.wiki.UITreeExplorer.init(\"" + treeId + "\",\"" + initParam + "\",false );}")
+      .append("        function initTree(){eXo.wiki.UITreeExplorer.init(\"" + treeId + "\",\"" + initParam + "\",false, true,\"" + baseUrl + "\");}")
       .append("        var isInIFrame = (window.location != window.parent.location) ? true : false;")
       .append("        if (isInIFrame) {")
       .append("          if (window.attachEvent) {window.attachEvent('onload', initTree);}")

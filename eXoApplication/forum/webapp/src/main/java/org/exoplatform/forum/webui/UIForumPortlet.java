@@ -147,6 +147,8 @@ public class UIForumPortlet extends UIPortletApplication {
 
   private String       forumSpId           = null;
 
+  private String       spaceGroupId        = null;
+
   protected String       spaceDisplayName  = null;
 
   private List<String> invisibleForums     = new ArrayList<String>();
@@ -251,18 +253,20 @@ public class UIForumPortlet extends UIPortletApplication {
   }
 
   public String getForumIdOfSpace() {
+    
     PortletRequestContext pcontext = (PortletRequestContext) WebuiRequestContext.getCurrentInstance();
     PortletPreferences pref = pcontext.getRequest().getPreferences();
     if (pref.getValue("SPACE_URL", null) != null && ForumUtils.isEmpty(forumSpId)) {
       String url = pref.getValue("SPACE_URL", null);
       SpaceService sService = (SpaceService) PortalContainer.getInstance().getComponentInstanceOfType(SpaceService.class);
       Space space = sService.getSpaceByUrl(url);
+      spaceGroupId = space.getGroupId();
       forumSpId = Utils.FORUM_SPACE_ID_PREFIX + space.getPrettyName();
       spaceDisplayName = space.getDisplayName();
       try {
         OrganizationService service = (OrganizationService) PortalContainer.getInstance()
                                                                            .getComponentInstanceOfType(OrganizationService.class);
-        String parentGrId = service.getGroupHandler().findGroupById(space.getGroupId()).getParentId();
+        String parentGrId = service.getGroupHandler().findGroupById(spaceGroupId).getParentId();
         categorySpId = Utils.CATEGORY + parentGrId.replaceAll(CommonUtils.SLASH, CommonUtils.EMPTY_STR);
       } catch (Exception e) {
         if (log.isDebugEnabled()){
@@ -451,6 +455,18 @@ public class UIForumPortlet extends UIPortletApplication {
     return dayForumNewPost;
   }
 
+  public String getSpaceGroupId() {
+    return spaceGroupId;
+  }
+
+  public String getCategorySpaceId() {
+    return categorySpId;
+  }
+
+  public String getForumSpaceId() {
+    return forumSpId;
+  }
+
   public void cancelAction() throws Exception {
     WebuiRequestContext context = WebuiRequestContext.getCurrentInstance();
     UIPopupAction popupAction = getChild(UIPopupAction.class);
@@ -531,7 +547,8 @@ public class UIForumPortlet extends UIPortletApplication {
 
   public String getUserToken() throws Exception {
     try {
-      ContinuationService continuation = (ContinuationService) PortalContainer.getInstance().getComponentInstanceOfType(ContinuationService.class);
+      ContinuationService continuation = (ContinuationService) PortalContainer.getInstance()
+                                                                         .getComponentInstanceOfType(ContinuationService.class);
       return continuation.getUserToken(userProfile.getUserId());
     } catch (Exception e) {
       log.error("Could not retrieve continuation token for user " + userProfile.getUserId(), e);
@@ -604,10 +621,9 @@ public class UIForumPortlet extends UIPortletApplication {
   }
 
   public boolean checkCanView(Category cate, Forum forum, Topic topic) throws Exception {
-    String userId = getUserProfile().getUserId();
-    if (userProfile.getUserRole() == 0)
+    if (getUserProfile().getUserRole() == 0)
       return true;
-    List<String> userBound = UserHelper.getAllGroupAndMembershipOfUser(userId);
+    List<String> userBound = UserHelper.getAllGroupAndMembershipOfUser(null);
     String[] viewer = cate.getUserPrivate();
     if (isArrayNotNull(viewer)) {
       if (!Utils.hasPermission(Arrays.asList(viewer), userBound))
@@ -788,7 +804,6 @@ public class UIForumPortlet extends UIPortletApplication {
         String cateId = null;
         int page = 0;
         if (path.indexOf(ForumUtils.SLASH) >= 0) {
-          path = path.substring(path.indexOf(Utils.CATEGORY));
           String[] arr = path.split(ForumUtils.SLASH);
           try {
             page = Integer.parseInt(arr[arr.length - 1]);
@@ -805,7 +820,7 @@ public class UIForumPortlet extends UIPortletApplication {
           }
         }
         if (forum == null) {
-          forum = (Forum) this.forumService.getObjectNameById(path, Utils.FORUM);
+          forum = (Forum) this.forumService.getObjectNameById(path.substring(path.lastIndexOf(ForumUtils.SLASH) + 1), Utils.FORUM);
           if (forum == null && path.equals(getForumIdOfSpace())) {
             forum = forumService.getForum(this.categorySpId, path);
           }
@@ -816,11 +831,10 @@ public class UIForumPortlet extends UIPortletApplication {
             return;
           }
         }
-        path = forum.getPath();
         if (cateId == null) {
-          cateId = path.substring(path.indexOf(Utils.CATEGORY), path.lastIndexOf(Utils.FORUM) - 1);
+          cateId = forum.getCategoryId();
         }
-        path = path.substring(path.indexOf(Utils.CATEGORY));
+        path = new StringBuilder(cateId).append("/").append(forum.getId()).toString();
         Category category = this.forumService.getCategory(cateId);
         if (this.checkCanView(category, forum, null)) {
           this.updateIsRendered(ForumUtils.FORUM);
